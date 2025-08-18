@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.36105.23 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmlViewer", "UmlViewer.csproj", "{BA2F7B63-F5C0-41DF-9CA4-53EDB5B3DD46}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IO", "..\IO\IO.csproj", "{764C66D7-5C33-41A2-AF18-4147E295569C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation", "..\Validation\Validation.csproj", "{4000568C-D2D0-4976-B1C8-7C4DCF95F775}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BA2F7B63-F5C0-41DF-9CA4-53EDB5B3DD46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA2F7B63-F5C0-41DF-9CA4-53EDB5B3DD46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA2F7B63-F5C0-41DF-9CA4-53EDB5B3DD46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA2F7B63-F5C0-41DF-9CA4-53EDB5B3DD46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{764C66D7-5C33-41A2-AF18-4147E295569C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{764C66D7-5C33-41A2-AF18-4147E295569C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{764C66D7-5C33-41A2-AF18-4147E295569C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{764C66D7-5C33-41A2-AF18-4147E295569C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4000568C-D2D0-4976-B1C8-7C4DCF95F775}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4000568C-D2D0-4976-B1C8-7C4DCF95F775}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4000568C-D2D0-4976-B1C8-7C4DCF95F775}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4000568C-D2D0-4976-B1C8-7C4DCF95F775}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F4965EFC-6447-4205-9613-597A3969DC4A}
+	EndGlobalSection
+EndGlobal
