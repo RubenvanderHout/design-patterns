@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Include="Test FSMs\.DS_Store" />
+  </ItemGroup>
+
 </Project>
