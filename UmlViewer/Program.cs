@@ -1,2 +1,2 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿var astr = await File.ReadAllTextAsync("P:\\projects\\design-patterns\\IO\\Test_fsm\\example_lamp.fsm");
+Console.WriteLine(astr);

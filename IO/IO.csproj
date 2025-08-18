@@ -7,7 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="Test FSMs\.DS_Store" />
+    <None Include="Test_fsm\.DS_Store" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Pipelines" Version="9.0.8" />
   </ItemGroup>
 
 </Project>
