@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IO.DTO;
 
 namespace IO
 {
     internal interface IParser
     {
-        string Parse(string input);
+         FsmDto Parse(string rawInput);
     }
 }

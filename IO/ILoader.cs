@@ -8,6 +8,6 @@ namespace IO
 {
     internal interface ILoader
     {
-        Stream Load(string path);
+        string Load(string path);
     }
 }
