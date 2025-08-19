@@ -23,7 +23,7 @@ namespace Validation.ValidationRules
             };
 
             if (id != null && !IdentifierRegex.IsMatch(id))
-                throw new ArgumentException($"Invalid identifier '{id}'. Must be [a-zA-Z]+.");
+                throw new ArgumentException($"Invalid identifier '{id}'. Must be [a-zA-Z]+\\S*");
         }
     
     }
