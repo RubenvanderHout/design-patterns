@@ -24,13 +24,13 @@ namespace Validation
         public State? Parent { get; private set; }
         public List<State> Children { get; } = [];
         public List<Action> Actions { get; } = [];
+        // Allow these to be later passed in. Because i can't create such a Transactions right away.
+        private List<Transition> LeavingTransitions = [];
+        private List<Transition> EnteringTransitions = [];
 
-        // SourceTransitions
-        // DestinationTransitions
+        private bool LeavingTransitionsIntialised = false;
+        private bool EnteringTransitionsIntialised = false;
 
-
-
-        public List<Transition> Transitions { get; } = [];
         public StateType Type { get; }
 
         public string? ParentId { get; } 
@@ -43,6 +43,7 @@ namespace Validation
         {
             ParentId = parent;
             Type = type;
+
         }
 
         public void AddParent(State state)
@@ -77,9 +78,19 @@ namespace Validation
             Actions.Add(action);
         }
 
-        public void AddTransition(Transition transition)
+        public void LeavingTransitions(List<Transition> LeavingTransitions)
         {
-            Transitions.Add(transition);
+            if (LeavingTransitionsIsSet)
+            {
+
+            }
+
+        }
+
+        public void EnteringTransitions(List<Transition> EnteringTransitions)
+        {
+
+
         }
     }
 
@@ -89,9 +100,9 @@ namespace Validation
 
     public sealed record Transition(
         string Identifier,
-        State Source,
-        State Destination,
-        Trigger? Trigger,
+        State SourceState,
+        State DestinatnionState,
+        Trigger Trigger,
         Action? Action,
         string GuardCondition
     ) : FsmNode(Identifier);

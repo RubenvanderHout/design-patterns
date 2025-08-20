@@ -16,24 +16,128 @@ namespace Validation
     public sealed class FsmRuleParser
     {
         private readonly List<IValidationRule> _rules;
+        private readonly List<Transition> _transitions;
 
         // Primary indexes
         private readonly Dictionary<string, State> _states;
-        private readonly Dictionary<string, Transition> _transitions;
         private readonly Dictionary<string, Trigger> _triggers;
         private readonly Dictionary<string, List<Action>> _actions;
 
         // Secondary indexes
-
+        private readonly Dictionary<string, Range> _sourceStateTransitions = new();
+        private readonly Dictionary<string, Range> _destinationTransitions = new();
+ 
 
         public FsmRuleParser(IEnumerable<IValidationRule> rules, FsmDto dto)
         {
             _rules = [.. rules];
             _states = new Dictionary<string, State>();
-            _transitions = new Dictionary<string, Transition>();
+            _transitions = new List<Transition>();
             _triggers = new Dictionary<string, Trigger>();
             _actions = new Dictionary<string, List<Action>>();
         }
+
+        private void BuildTriggers(in FsmDto dto)
+        {
+            foreach (var triItem in dto.Triggers)
+            {
+                var trigger = new Trigger(triItem.Identifier, triItem.Description);
+                _triggers.Add(trigger.Identifier, trigger);
+            }
+        }
+        private void BuildActions(in FsmDto dto)
+        {
+            foreach (var aItem in dto.Actions)
+            {
+                var actionType = MatchDtoToActionType(aItem.Type);
+                var action = new Action(aItem.Identifier, aItem.Description, actionType);
+
+                if (_actions.TryGetValue(aItem.Identifier, out var list))
+                {
+                    list.Add(action);
+                }
+                else
+                {
+                    var listNew = new List<Action>
+                    {
+                        action
+                    };
+                    _actions.Add(action.Identifier, listNew);
+                }
+            }
+        }
+
+        public void BuildTransitions(FsmDto dto)
+        {
+            foreach (var tItem in dto.Transitions)
+            {
+                // Transitions always have one element 
+                var action = GetOrThrow(_actions, tItem.Identifier, "Action")[0];
+
+                Trigger? trigger = tItem.TriggerIdentifier == null
+                    ? null
+                    : GetOrThrow(_triggers, tItem.TriggerIdentifier, "Trigger");
+
+                var transition = new Transition(
+                    tItem.Identifier,
+                    tItem.SourceStateIdentifier, // Used as key for filtering later
+                    tItem.DestinationStateIdentifier, // Used as key for filtering later
+                    trigger,
+                    action,
+                    tItem.GuardCondition
+                );
+
+                _transitions.Add(transition);
+            }
+        }
+
+
+        public void BuildTransitionsStateTypeIndex(List<Transition> transitions)
+        {
+            foreach (var transition in transitions)
+            {
+                //transition
+            }
+        }
+
+
+        public void BuildSourceTransitions(FsmDto dto)
+        { 
+            _transitions.Sort((a, b) => a.SourceStateIdentifier.CompareTo(b.SourceStateIdentifier));
+
+
+        }
+
+
+        public void BuildDestinatnioTransitions(FsmDto dto)
+        {
+
+        }
+
+        //private void BuildIndex(
+        //    List<Transition> trs,
+        //    Func<Transition, string> keySelector,
+        //    Dictionary<string, Range> index
+        //)
+        //{
+        //    // Clear already filled indexes
+        //    index.Clear();
+
+        //    int start = 0;
+        //    while(start < trs.Count)
+        //    {   
+        //        // Func delegate for selecting property
+        //        var key = keySelector(trs[start]);
+        //        int end = start + 1;
+        //        while (end < trs.Count && keySelector(trs[end]) == key)
+        //            end++;
+        //        index
+        //    }
+        //}
+
+
+
+
 
         private Dictionary<string, State> BuildStructure(in FsmDto dto)
         {
