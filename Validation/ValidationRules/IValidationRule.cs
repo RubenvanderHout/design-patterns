@@ -6,13 +6,11 @@ using System.Threading.Tasks;
 
 namespace Validation.ValidationRules
 {
-   public interface IValidationRule
-   {
-        /// <summary>
-        /// Validates a object.
-        /// Throws Argumentexception if the rule is invalid
-        /// </summary>
-        /// 
-        void Apply(object obj, FsmDefinition current);
+    public interface IValidtionRuleVistor
+    {
+        void VisitState(State state);
+        void VisitTransition(Transition transition);
+        void VisitAction(Action action);
+        void VisitTrigger(Trigger trigger);
     }
 }

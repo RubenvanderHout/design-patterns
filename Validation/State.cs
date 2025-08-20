@@ -1,4 +1,5 @@
 ﻿using IO.DTO;
+using Validation.ValidationRules;
 
 namespace Validation
 {
@@ -17,86 +18,58 @@ namespace Validation
         TRANSITION_ACTION
     }
 
-    public abstract record FsmNode(string Identifier);
+    public abstract record FsmNode(string Identifier)
+    {
+        public abstract void Accept(IValidtionRuleVistor visitor);
+    }
 
     public sealed record State : FsmNode
     {
-        public State? Parent { get; private set; }
-        public List<State> Children { get; } = [];
-        public List<Action> Actions { get; } = [];
-        // Allow these to be later passed in. Because i can't create such a Transactions right away.
-        private List<Transition> LeavingTransitions = [];
-        private List<Transition> EnteringTransitions = [];
-
-        private bool LeavingTransitionsIntialised = false;
-        private bool EnteringTransitionsIntialised = false;
-
         public StateType Type { get; }
 
-        public string? ParentId { get; } 
+        public List<Action> Actions { get; private set; } = [];
+
+        public List<State> Children { get; private set; } = [];
+        public List<Transition> SourceTransitions { get; private set; } = [];
+        public List<Transition> DestinationTransitions { get; private set; } = [];
 
         public State(
             string identifier,
             StateType type,
-            string? parent
+            List<Action> actions,
+            List<State> childeren,
+            List<Transition> sourceTransition,
+            List<Transition> destinationTransaction
         ) : base(identifier)
         {
-            ParentId = parent;
             Type = type;
-
+            Actions = actions;
+            Children = childeren;
+            SourceTransitions = sourceTransition;
+            DestinationTransitions = destinationTransaction;
         }
 
-        public void AddParent(State state)
+        public override void Accept(IValidtionRuleVistor visitor)
         {
-            if (ParentId == null)
-            {
-                throw new InvalidOperationException(
-                    "State has no specified parent illegal operation"
-                );
-            }
-
-            if (state.Identifier == ParentId)
-            {
-                Parent = state;
-            }
-            else
-            {
-                throw new InvalidOperationException(
-                    $"State given isn't the correct one expected: ${ParentId} got ${state.Identifier}"
-                );
-            }
-           
-        }
-
-        public void AddChild(State child)
-        {
-            Children.Add(child);
-        }
-
-        public void AddAction(Action action)
-        {
-            Actions.Add(action);
-        }
-
-        public void LeavingTransitions(List<Transition> LeavingTransitions)
-        {
-            if (LeavingTransitionsIsSet)
-            {
-
-            }
-
-        }
-
-        public void EnteringTransitions(List<Transition> EnteringTransitions)
-        {
-
-
+            visitor.VisitState(this);
         }
     }
 
-    public sealed record Trigger(string Identifier, string Description) : FsmNode(Identifier);
+    public sealed record Trigger(string Identifier, string Description) : FsmNode(Identifier)
+    {
+        public override void Accept(IValidtionRuleVistor visitor)
+        {
+            visitor.VisitTrigger(this);
+        }
+    }
 
-    public sealed record Action(string Identifier, string Description, ActionType Type) : FsmNode(Identifier);
+    public sealed record Action(string Identifier, string Description, ActionType Type) : FsmNode(Identifier)
+    {
+        public override void Accept(IValidtionRuleVistor visitor)
+        {
+            visitor.VisitAction(this);
+        }
+    }
 
     public sealed record Transition(
         string Identifier,
@@ -105,6 +78,11 @@ namespace Validation
         Trigger Trigger,
         Action? Action,
         string GuardCondition
-    ) : FsmNode(Identifier);
-
+    ) : FsmNode(Identifier)
+    {
+        public override void Accept(IValidtionRuleVistor visitor)
+        {
+            visitor.VisitTransition(this);
+        }
+    }
 }
