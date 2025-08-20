@@ -28,9 +28,8 @@ namespace Validation
         // TriggerId -> Trigger
         public Dictionary<string, Trigger> Triggers { get; } = [];
         // TransitionId or StateId -> Action
-        private Dictionary<string, List<Action>> Actions { get; } = [];
+        public Dictionary<string, List<Action>> Actions { get; } = [];
       
-
         // StateId -> Source Transitions 
         public readonly Dictionary<string, List<RawTransition>> SourceTransitions = [];
         // StateId -> Destination Transitions
@@ -39,7 +38,6 @@ namespace Validation
         public readonly Dictionary<string, RawState> RawStates = [];
         // StatID -> List<State> childeren
         public readonly Dictionary <string, List<RawState>> RawChilderen = [];
-
 
         public RawState? RootState { get => rootState; }
         private RawState? rootState = null;
@@ -128,8 +126,8 @@ namespace Validation
 
                 if (!DestinationTransitions.TryGetValue(transition.DestinationStateId, out var destList))
                 {
-                    destList = new List<RawTransition>();
-                    DestinationTransitions.Add(transition.SourceStateId, destList);
+                    destList = [transition];
+                    DestinationTransitions.Add(transition.DestinationStateId, destList);
                 }
                 else
                 {
@@ -138,9 +136,6 @@ namespace Validation
 
             }
         }
-
-    
-
 
         public static StateType MatchDtoToStateType(IO.DTO.StateType stateType)
         {
@@ -167,12 +162,5 @@ namespace Validation
             };
             return vst;
         }
-
-       
-
     }
-
-    
-
-
 }
