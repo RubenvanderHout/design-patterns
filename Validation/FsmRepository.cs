@@ -36,6 +36,7 @@ namespace Validation
         public readonly Dictionary<string, List<RawTransition>> DestinationTransitions = [];
         // StateID -> State
         public readonly Dictionary<string, RawState> RawStates = [];
+
         // StatID -> List<State> children
         public readonly Dictionary <string, List<RawState>> RawChildren = [];
 
