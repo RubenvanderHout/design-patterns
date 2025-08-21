@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace IO
 {
-    internal interface ILoader
+    public interface ILoaderFactory
+    {
+        ILoader CreateLoader();
+    }
+
+    public interface ILoader
     {
         string Load(string path);
     }

@@ -13,4 +13,9 @@ public sealed class FileLoader : ILoader
 
         return File.ReadAllText(path, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
     }
+
+    public sealed class FileLoaderFactory : ILoaderFactory
+    {
+        public ILoader CreateLoader() => new FileLoader();
+    }
 }
