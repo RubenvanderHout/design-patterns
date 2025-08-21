@@ -13,11 +13,11 @@ namespace ValidationTests
         {
             var states = new List<StateDto>
             {
-                new() { Identifier = "h1", Parent = null, Name = "powered off", Type = StateType.INITIAL },
-                new() { Identifier = "h2", Parent = null, Name = "Powered up", Type = StateType.COMPOUND },
+                new() { Identifier = "h1", Parent = "_", Name = "powered off", Type = StateType.INITIAL },
+                new() { Identifier = "h2", Parent = "_", Name = "Powered up", Type = StateType.COMPOUND },
                 new() { Identifier = "h3", Parent = "h2", Name = "Lamp is off", Type = StateType.SIMPLE },
                 new() { Identifier = "h4", Parent = "h2", Name = "Lamp is on", Type = StateType.SIMPLE },
-                new() { Identifier = "h5", Parent = null, Name = "powered off", Type = StateType.FINAL }
+                new() { Identifier = "h5", Parent = "_", Name = "powered off", Type = StateType.FINAL }
             };
 
             var triggers = new List<TriggerDto>
