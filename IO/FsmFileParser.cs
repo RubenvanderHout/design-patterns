@@ -51,7 +51,7 @@ public sealed class FsmFileParser : IParser
                 dto.States.Add(new StateDto
                 {
                     Identifier = m!.Groups["id"].Value,
-                    Parent = m.Groups["parent"].Value == "_" ? null : m.Groups["parent"].Value,
+                    Parent = m.Groups["parent"].Value == "_" ? "_" : m.Groups["parent"].Value,
                     Name = m.Groups["name"].Value,
                     Type = Enum.Parse<StateType>(m.Groups["type"].Value, ignoreCase: false)
                 });

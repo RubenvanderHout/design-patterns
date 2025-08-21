@@ -1,4 +1,7 @@
-﻿namespace Validation
+﻿using IO.DTO;
+using Validation.ValidationRules;
+
+namespace Validation
 {
     public enum StateType
     {
@@ -14,25 +17,72 @@
         EXIT_ACTION,
         TRANSITION_ACTION
     }
-    public enum ComponentType
+
+    public abstract record FsmNode(string Identifier)
     {
-        STATE,
-        TRANSACTION,
-        TRIGGER,
-        ACTION
+        public abstract void Accept(IValidtionRuleVistor visitor);
     }
 
-    public sealed record State(string Identifier, string? Parent, string Name, StateType Type);
+    public sealed record State : FsmNode
+    {
+        public StateType Type { get; }
 
-    public sealed record Trigger(string Identifier, string Description);
+        public List<Action> Actions { get; private set; } = [];
 
-    public sealed record ActionDef(string OwnerIdentifier, string Description, ActionType Type);
+        public List<State> Children { get; private set; } = [];
+        public List<Transition> SourceTransitions { get; private set; } = [];
+        public List<Transition> DestinationTransitions { get; private set; } = [];
+
+        public State(
+            string identifier,
+            StateType type,
+            List<Action> actions,
+            List<State> childeren,
+            List<Transition> sourceTransition,
+            List<Transition> destinationTransaction
+        ) : base(identifier)
+        {
+            Type = type;
+            Actions = actions;
+            Children = childeren;
+            SourceTransitions = sourceTransition;
+            DestinationTransitions = destinationTransaction;
+        }
+
+        public override void Accept(IValidtionRuleVistor visitor)
+        {
+            visitor.VisitState(this);
+        }
+    }
+
+    public sealed record Trigger(string Identifier, string Description) : FsmNode(Identifier)
+    {
+        public override void Accept(IValidtionRuleVistor visitor)
+        {
+            visitor.VisitTrigger(this);
+        }
+    }
+
+    public sealed record Action(string Identifier, string Description, ActionType Type) : FsmNode(Identifier)
+    {
+        public override void Accept(IValidtionRuleVistor visitor)
+        {
+            visitor.VisitAction(this);
+        }
+    }
 
     public sealed record Transition(
         string Identifier,
-        string Source,
-        string Destination,
-        string? TriggerIdentifier,
+        State SourceState,
+        State DestinatnionState,
+        Trigger Trigger,
+        Action? Action,
         string GuardCondition
-    );
+    ) : FsmNode(Identifier)
+    {
+        public override void Accept(IValidtionRuleVistor visitor)
+        {
+            visitor.VisitTransition(this);
+        }
+    }
 }

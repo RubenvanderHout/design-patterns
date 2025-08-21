@@ -1,76 +1,61 @@
-﻿using System;
+﻿using IO.DTO;
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
+using System.Xml.Linq;
 using Validation.ValidationRules;
 
 namespace Validation
 {
-    public sealed record FsmDefinition(
-       IReadOnlyDictionary<string, State> States,
-       IReadOnlyDictionary<string, Trigger> Triggers,
-       IReadOnlyDictionary<string, ActionDef> Actions,
-       IReadOnlyDictionary<string, Transition> Transitions
-    );
-
+ 
     public sealed class FsmRuleParser
     {
-        private readonly List<IValidationRule> _rules;
+        private readonly List<IValidtionRuleVistor> _rules;
+        private readonly FsmRepository _repo;
 
-        private readonly Dictionary<string, State> _states = [];
-        private readonly Dictionary<string, Trigger> _triggers = [];
-        private readonly Dictionary<string, ActionDef> _actions = [];
-        private readonly Dictionary<string, Transition> _transitions = [];
-
-        public FsmRuleParser(IEnumerable<IValidationRule> rules)
+        public FsmRuleParser(IEnumerable<IValidtionRuleVistor> rules, FsmRepository repo)
         {
+            _repo = repo;
             _rules = [.. rules];
+
+            var result = BuildComposite(_repo.RootState);
         }
 
-        public FsmDefinition Build()
+        private State BuildComposite(RawState? rootstate)
         {
-            return new FsmDefinition(_states, _triggers, _actions, _transitions);
+            //if (rootstate == null)
+            //{
+            //    throw new InvalidOperationException("Syntax error: Should have an INITIAL state");
+            //}
+
+            //// Get childeren
+            //// Get actions
+            //// Get sourceTransitions
+            //    // Get Trigger 
+            //    // Get Action
+            //// Get destinatnionTransitions
+            //    // Get Trigger 
+            //    // Get Action
+
+
+            //_repo.RawChilderen.TryGetValue(rootstate.Id, out var childeren);
+
+            //childeren
+            //    .Select(child => )
+
+
+
+
+            //return new State(rootstate.Id, rootstate.type, );
+            throw new NotImplementedException();
         }
 
-        private void ApplyRules(object obj)
-        {
-            var snapshot = Build(); // current definition so far
-            foreach (var rule in _rules)
-                rule.Apply(obj, snapshot);
-        }
 
-        public State AddState(string identifier, string parent, string name, StateType type)
-        {
-            var state = new State(identifier, parent == "_" ? null : parent, name, type);
-            ApplyRules(state);
-            _states[state.Identifier] = state;
-            return state;
-        }
-
-        public Trigger AddTrigger(string identifier, string description)
-        {
-            var trigger = new Trigger(identifier, description);
-            ApplyRules(trigger);
-            _triggers[trigger.Identifier] = trigger;
-            return trigger;
-        }
-
-        public ActionDef AddAction(string ownerIdentifier, string description, ActionType type)
-        {
-            var action = new ActionDef(ownerIdentifier, description, type);
-            ApplyRules(action);
-            _actions[ownerIdentifier + ":" + type] = action;
-            return action;
-        }
-
-        public Transition AddTransition(string identifier, string source, string destination, string? trigger, string guard)
-        {
-            var transition = new Transition(identifier, source, destination, trigger, guard);
-            ApplyRules(transition);
-            _transitions[identifier] = transition;
-            return transition;
-        }
     }
 }
