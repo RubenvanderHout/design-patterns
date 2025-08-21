@@ -35,6 +35,7 @@ namespace Validation
             //}
 
             //// Get Children
+
             //// Get actions
             //// Get sourceTransitions
             //    // Get Trigger 
@@ -44,9 +45,10 @@ namespace Validation
             //    // Get Action
 
 
-            //_repo.RawChildren.TryGetValue(rootstate.Id, out var Children);
 
-            //Children
+            //_repo.Rawchildren.TryGetValue(rootstate.Id, out var children);
+
+            //children
             //    .Select(child => )
 
 
