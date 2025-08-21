@@ -37,14 +37,14 @@ namespace Validation
             string identifier,
             StateType type,
             List<Action> actions,
-            List<State> childeren,
+            List<State> Children,
             List<Transition> sourceTransition,
             List<Transition> destinationTransaction
         ) : base(identifier)
         {
             Type = type;
             Actions = actions;
-            Children = childeren;
+            Children = Children;
             SourceTransitions = sourceTransition;
             DestinationTransitions = destinationTransaction;
         }

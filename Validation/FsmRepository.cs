@@ -36,8 +36,8 @@ namespace Validation
         public readonly Dictionary<string, List<RawTransition>> DestinationTransitions = [];
         // StateID -> State
         public readonly Dictionary<string, RawState> RawStates = [];
-        // StatID -> List<State> childeren
-        public readonly Dictionary <string, List<RawState>> RawChilderen = [];
+        // StatID -> List<State> Children
+        public readonly Dictionary <string, List<RawState>> RawChildren = [];
 
         public RawState? RootState { get => rootState; }
         private RawState? rootState = null;
@@ -86,10 +86,10 @@ namespace Validation
 
                 if (state.ParentId != null)
                 {
-                    if (!RawChilderen.TryGetValue(state.ParentId, out var childList))
+                    if (!RawChildren.TryGetValue(state.ParentId, out var childList))
                     {
                         childList = [state];
-                        RawChilderen.Add(state.ParentId, childList);
+                        RawChildren.Add(state.ParentId, childList);
                     }
                     else
                     {

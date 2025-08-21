@@ -34,7 +34,7 @@ namespace Validation
             //    throw new InvalidOperationException("Syntax error: Should have an INITIAL state");
             //}
 
-            //// Get childeren
+            //// Get Children
             //// Get actions
             //// Get sourceTransitions
             //    // Get Trigger 
@@ -44,9 +44,9 @@ namespace Validation
             //    // Get Action
 
 
-            //_repo.RawChilderen.TryGetValue(rootstate.Id, out var childeren);
+            //_repo.RawChildren.TryGetValue(rootstate.Id, out var Children);
 
-            //childeren
+            //Children
             //    .Select(child => )
 
 
