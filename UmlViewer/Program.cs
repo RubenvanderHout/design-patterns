@@ -1,11 +1,12 @@
 ﻿using IO;                     
 using Validation;             
-using UmlViewer.UI;           
+using UmlViewer.UI;
+using static IO.FileLoader;
 
 bool showHelp = false;
 bool running = true;
 
-var fileLoader = new FileLoader();
+ILoaderFactory loaderFactory = new FileLoaderFactory();
 
 while (running)
 {
@@ -28,7 +29,7 @@ while (running)
             break;
 
         case ConsoleKey.L:
-            LoadAndRenderFlow(fileLoader);
+            LoadAndRenderFlow(loaderFactory);
             break;
     }
 }
@@ -44,7 +45,7 @@ static void HelpMenu()
     Console.WriteLine("q - Quit the application");
 }
 
-static void LoadAndRenderFlow(FileLoader fileLoader)
+static void LoadAndRenderFlow(ILoaderFactory loaderFactory)
 {
     Console.WriteLine();
     Console.Write("Type a valid path to an FSM .txt file: ");
@@ -66,7 +67,8 @@ static void LoadAndRenderFlow(FileLoader fileLoader)
 
     try
     {
-    
+        var fileLoader = loaderFactory.CreateLoader();
+        
         var raw = fileLoader.Load(path);
         var parser = new FsmFileParser();
         var dto = parser.Parse(raw);
