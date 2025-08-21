@@ -67,7 +67,7 @@ namespace ValidationTests
         public void ChildrenDictionary_IsCorrect()
         {
             var repo = CreateExampleLampRepository();
-            var poweredChildren = repo.RawChilderen["h2"];
+            var poweredChildren = repo.RawChildren["h2"];
             Assert.Contains(poweredChildren, s => s.Id == "h3");
             Assert.Contains(poweredChildren, s => s.Id == "h4");
         }
