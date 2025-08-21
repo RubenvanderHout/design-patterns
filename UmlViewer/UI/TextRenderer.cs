@@ -12,28 +12,34 @@ public sealed class TextRenderer : IRenderer
         _sb.AppendLine("######################################################################");
         _sb.AppendLine($"# Diagram: {view.Title}");
         _sb.AppendLine("######################################################################");
-        _sb.AppendLine();
 
+        
         if (view.Initial is not null)
-        {
-            _sb.AppendLine($"   O Initial state ({view.Initial.DisplayName})");
-            _sb.AppendLine();
-        }
+            _sb.AppendLine($"O Initial state ({view.Initial.DisplayName})");
 
-        foreach (var t in view.TopLevelTransitions)
+        var initialId = view.Initial?.Identifier;
+        var initialTransitions = view.TopLevelTransitions
+            .Where(t => initialId != null && t.FromIdentifier == initialId)
+            .ToList();
+        var otherTopLevel = view.TopLevelTransitions
+            .Where(t => initialId == null || t.FromIdentifier != initialId)
+            .ToList();
+
+        foreach (var t in initialTransitions)
             VisitTransition(t, 0);
 
         foreach (var root in view.RootStates)
             VisitState(root, 0);
 
+        foreach (var t in otherTopLevel)
+            VisitTransition(t, 0);
+
         if (view.Final is not null)
-        {
-            _sb.AppendLine();
-            _sb.AppendLine($"   (O) Final state ({view.Final.DisplayName})");
-        }
+            _sb.AppendLine($"(O) Final state ({view.Final.DisplayName})");
 
         return _sb.ToString();
     }
+
 
     public void VisitState(StateView s, int depth)
     {
@@ -57,8 +63,8 @@ public sealed class TextRenderer : IRenderer
             _sb.AppendLine($"{indent}| {s.DisplayName}");
             _sb.AppendLine($"{indent}----------------------------------------------------------------------");
             if (s.EntryActions.Count > 0) _sb.AppendLine($"{indent}| On Entry / {string.Join("; ", s.EntryActions)}");
-            if (s.DoActions.Count > 0)    _sb.AppendLine($"{indent}| Do / {string.Join("; ", s.DoActions)}");
-            if (s.ExitActions.Count > 0)  _sb.AppendLine($"{indent}| On Exit / {string.Join("; ", s.ExitActions)}");
+            if (s.DoActions.Count > 0) _sb.AppendLine($"{indent}| Do / {string.Join("; ", s.DoActions)}");
+            if (s.ExitActions.Count > 0) _sb.AppendLine($"{indent}| On Exit / {string.Join("; ", s.ExitActions)}");
             _sb.AppendLine($"{indent}----------------------------------------------------------------------");
 
             foreach (var tr in s.Outgoing)
@@ -70,9 +76,10 @@ public sealed class TextRenderer : IRenderer
     public void VisitTransition(TransitionView t, int depth)
     {
         var indent = new string(' ', depth * 3);
-        var trigger = t.TriggerIdentifier is null ? "" : t.TriggerIdentifier.Replace('_', ' ');
+        var trigger = t.TriggerIdentifier ?? "";
         var guard = string.IsNullOrEmpty(t.GuardCondition) ? "" : $" [{t.GuardCondition}]";
         var effect = t.TransitionActions.Count == 0 ? "" : $" / {string.Join("; ", t.TransitionActions)}";
-        _sb.AppendLine($"{indent}   ---{trigger}{guard}{effect}---> {t.ToDisplayName}");
+
+        _sb.AppendLine($"{indent}---{trigger}{guard}{effect}---> {t.ToDisplayName}");
     }
 }
