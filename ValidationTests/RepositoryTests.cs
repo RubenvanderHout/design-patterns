@@ -58,16 +58,16 @@ namespace ValidationTests
         public void StatesDictionary_IsCorrect()
         {
             var repo = CreateExampleLampRepository();
-            Assert.Equal("h1", repo.RawStates["h1"].Id);
-            Assert.Equal("h2", repo.RawStates["h2"].Id);
-            Assert.Equal("h5", repo.RawStates["h5"].Id);
+            Assert.Equal("h1", repo.RootStates["h1"].Id);
+            Assert.Equal("h2", repo.RootStates["h2"].Id);
+            Assert.Equal("h5", repo.RootStates["h5"].Id);
         }
 
         [Fact]
         public void ChildrenDictionary_IsCorrect()
         {
             var repo = CreateExampleLampRepository();
-            var poweredChildren = repo.RawChildren["h2"];
+            var poweredChildren = repo.ChildStates["h2"];
             Assert.Contains(poweredChildren, s => s.Id == "h3");
             Assert.Contains(poweredChildren, s => s.Id == "h4");
         }

@@ -13,51 +13,37 @@ using Validation.ValidationRules;
 
 namespace Validation
 {
- 
+    public sealed class FsmRoot(string title, List<State> rootStates, List<State> allStates)
+    {
+        public string Title { get; init; } = title;
+        public List<State> RootStates { get; } = rootStates;
+        public List<State> AllStates { get; } = allStates;
+    }
+
     public sealed class FsmRuleParser
     {
+        public FsmRepository Repo { get; }
+        public FsmRoot FsmRoot { get; } 
         private readonly List<IValidtionRuleVistor> _rules;
-        private readonly FsmRepository _repo;
 
-        public FsmRuleParser(IEnumerable<IValidtionRuleVistor> rules, FsmRepository repo)
+        public FsmRuleParser(IEnumerable<IValidtionRuleVistor> rules, FsmDto dto)
         {
-            _repo = repo;
             _rules = [.. rules];
-
-            var result = BuildComposite(_repo.RootState);
+            Repo = new FsmRepository(dto);
+            FsmRoot = BuildComposites();
         }
 
-        private State BuildComposite(RawState? rootstate)
+        private FsmRoot BuildComposites()
         {
-            //if (rootstate == null)
-            //{
-            //    throw new InvalidOperationException("Syntax error: Should have an INITIAL state");
-            //}
+            var parents = Repo.RootStates;
 
-            //// Get Children
+            foreach (var parent in parents)
+            {
+                parent.Children = Repo.ChildStates.GetValueOrDefault(parent.Identifier, []);
+            }
 
-            //// Get actions
-            //// Get sourceTransitions
-            //    // Get Trigger 
-            //    // Get Action
-            //// Get destinatnionTransitions
-            //    // Get Trigger 
-            //    // Get Action
-
-
-
-            //_repo.Rawchildren.TryGetValue(rootstate.Id, out var children);
-
-            //children
-            //    .Select(child => )
-
-
-
-
-            //return new State(rootstate.Id, rootstate.type, );
             throw new NotImplementedException();
         }
-
 
     }
 }

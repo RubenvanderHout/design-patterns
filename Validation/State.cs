@@ -10,6 +10,7 @@ namespace Validation
         COMPOUND,
         FINAL
     }
+
     public enum ActionType
     {
         ENTRY_ACTION,
@@ -18,71 +19,52 @@ namespace Validation
         TRANSITION_ACTION
     }
 
-    public abstract record FsmNode(string Identifier)
+    public abstract class FsmNode(string identifier)
     {
-        public abstract void Accept(IValidtionRuleVistor visitor);
+        public string Identifier { get; set; } = identifier;
     }
 
-    public sealed record State : FsmNode
+    public class State(
+        string identifier,
+        string? parentId,
+        StateType type,
+        List<Action> actions,
+        List<Transition> sourceTransitions, 
+        List<Transition> destinationTransitions
+    ) : FsmNode(identifier)
     {
-        public StateType Type { get; }
-
-        public List<Action> Actions { get; private set; } = [];
-
-        public List<State> Children { get; private set; } = [];
-        public List<Transition> SourceTransitions { get; private set; } = [];
-        public List<Transition> DestinationTransitions { get; private set; } = [];
-
-        public State(
-            string identifier,
-            StateType type,
-            List<Action> actions,
-            List<State> children,
-            List<Transition> sourceTransition,
-            List<Transition> destinationTransaction
-        ) : base(identifier)
-        {
-            Type = type;
-            Actions = actions;
-            Children = children;
-            SourceTransitions = sourceTransition;
-            DestinationTransitions = destinationTransaction;
-        }
-
-        public override void Accept(IValidtionRuleVistor visitor)
-        {
-            visitor.VisitState(this);
-        }
+        public string? ParentId { get; set; } = parentId;
+        public StateType Type { get; set; } = type;
+        public List<Action> Actions { get; init; } = actions;
+        public List<Transition> SourceTransitions { get; init; } = sourceTransitions;
+        public List<Transition> DestinationTransitions { get; init; } = destinationTransitions;
+        public List<State> Children { get; set; } = [];
     }
 
-    public sealed record Trigger(string Identifier, string Description) : FsmNode(Identifier)
+    public class Trigger(string identifier, string description) : FsmNode(identifier)
     {
-        public override void Accept(IValidtionRuleVistor visitor)
-        {
-            visitor.VisitTrigger(this);
-        }
+        public string Description { get; set; } = description;
     }
 
-    public sealed record Action(string Identifier, string Description, ActionType Type) : FsmNode(Identifier)
+    public class Action(string identifier, string description, ActionType type) : FsmNode(identifier)
     {
-        public override void Accept(IValidtionRuleVistor visitor)
-        {
-            visitor.VisitAction(this);
-        }
+        public string Description { get; set; } = description;
+        public ActionType Type { get; set; } = type;
     }
 
-    public sealed record Transition(
-        string Identifier,
-        State SourceState,
-        State DestinatnionState,
-        Trigger Trigger,
-        Action? Action,
-        string GuardCondition
-    ) : FsmNode(Identifier)
+    public class Transition(
+        string identifier,
+        string sourceStateId,
+        string destinationStateId,
+        Trigger? trigger,
+        Action action,
+        string guardCondition
+        ) : FsmNode(identifier)
     {
-        public override void Accept(IValidtionRuleVistor visitor)
-        {
-            visitor.VisitTransition(this);
-        }
+        public string SourceStateId { get; set; } = sourceStateId;
+        public string DestinationStateId { get; set; } = destinationStateId;
+        public Trigger? Trigger { get; set; } = trigger;
+        public Action Action { get; set; } = action;
+        public string GuardCondition { get; set; } = guardCondition;
     }
 }

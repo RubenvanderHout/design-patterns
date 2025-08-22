@@ -21,7 +21,7 @@ public sealed class RepositoryFsmViewBuilder : IFsmViewBuilder
 
         // 1) Collect ALL top-level roots (ParentId == null), not just initial
         //    Note: repo.RawStates contains states with ParentId == null.
-        var topLevel = _repo.RawStates.Values.ToList();
+        var topLevel = _repo.RootStates.Values.ToList();
 
         // 2) Traverse each root to gather all states
         var allStates = new Dictionary<string, RawState>(StringComparer.Ordinal);
@@ -154,7 +154,7 @@ public sealed class RepositoryFsmViewBuilder : IFsmViewBuilder
 
             result[s.Id] = s;
 
-            if (_repo.RawChildren.TryGetValue(s.Id, out var kids))
+            if (_repo.ChildStates.TryGetValue(s.Id, out var kids))
             {
                 for (int i = kids.Count - 1; i >= 0; i--)
                     stack.Push(kids[i]);
