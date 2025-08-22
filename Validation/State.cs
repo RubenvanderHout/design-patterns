@@ -19,52 +19,96 @@ namespace Validation
         TRANSITION_ACTION
     }
 
-    public abstract class FsmNode(string identifier)
+    public interface IFsmElement
     {
-        public string Identifier { get; set; } = identifier;
+        void Accept(IVisitor visitor);
+    }
+
+    public abstract class FsmNode : IFsmElement
+    {
+        public string Identifier { get; set; }
+
+        protected FsmNode(string identifier)
+        {
+            Identifier = identifier;
+        }
+
+        public abstract void Accept(IVisitor visitor);
     }
 
     public class State(
         string identifier,
+        string name, 
         string? parentId,
-        StateType type,
-        List<Action> actions,
-        List<Transition> sourceTransitions, 
-        List<Transition> destinationTransitions
-    ) : FsmNode(identifier)
+        StateType type
+    ) : FsmNode(identifier) 
     {
         public string? ParentId { get; set; } = parentId;
+        public string Name { get; set; } = name;
         public StateType Type { get; set; } = type;
-        public List<Action> Actions { get; init; } = actions;
-        public List<Transition> SourceTransitions { get; init; } = sourceTransitions;
-        public List<Transition> DestinationTransitions { get; init; } = destinationTransitions;
+        public List<Action> Actions { get; set; } = [];
+        public List<Transition> SourceTransitions { get; set; } = [];
+        public List<Transition> DestinationTransitions { get; set; } = [];
         public List<State> Children { get; set; } = [];
+        public State? Parent { get; set; }
+
+        public override void Accept(IVisitor visitor)
+        {
+            visitor.Visit(this);
+
+            foreach (var child in Children)
+            {
+                child.Accept(visitor);
+            }
+
+            foreach (var transition in SourceTransitions)
+            {
+                transition.Accept(visitor);
+            }
+        }
     }
 
     public class Trigger(string identifier, string description) : FsmNode(identifier)
     {
         public string Description { get; set; } = description;
+
+        public override void Accept(IVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
 
     public class Action(string identifier, string description, ActionType type) : FsmNode(identifier)
     {
         public string Description { get; set; } = description;
         public ActionType Type { get; set; } = type;
+
+        public override void Accept(IVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
 
     public class Transition(
         string identifier,
-        string sourceStateId,
-        string destinationStateId,
+        State sourceState,
+        State destinationState,
         Trigger? trigger,
-        Action action,
+        Action? action,
         string guardCondition
         ) : FsmNode(identifier)
     {
-        public string SourceStateId { get; set; } = sourceStateId;
-        public string DestinationStateId { get; set; } = destinationStateId;
+        public State SourceState { get; set; } = sourceState;
+        public State DestinationState { get; set; } = destinationState;
         public Trigger? Trigger { get; set; } = trigger;
-        public Action Action { get; set; } = action;
+        public Action? Action { get; set; } = action;
         public string GuardCondition { get; set; } = guardCondition;
+
+        public override void Accept(IVisitor visitor)
+        {
+            visitor.Visit(this);
+            Action?.Accept(visitor);
+            Trigger?.Accept(visitor);
+        }
     }
 }

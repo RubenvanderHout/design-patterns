@@ -20,7 +20,7 @@ namespace Validation
 
     public class FsmRepository
     {
-        public List<State> RootStates { get; } = [];
+        public Dictionary<string, State> RootStates { get; } = [];
         // StateID -> State
         public Dictionary<string, State> AllStates { get; } = [];
         // StateID -> List<State> children
@@ -30,11 +30,8 @@ namespace Validation
         // StateId -> Destination Transitions
         public Dictionary<string, List<Transition>> DestinationTransitions { get; } = [];
 
-        // Triggers and Actions both have a 1 on 1 relationship 
-        // So I chose to have them already inserted into the objects here
-        // for performance and ease of use
-        private Dictionary<string, Trigger> Triggers { get; } = [];
-        private Dictionary<string, List<Action>> Actions { get; } = [];
+        public Dictionary<string, Trigger> Triggers { get; } = [];
+        public Dictionary<string, List<Action>> Actions { get; } = [];
 
         public FsmRepository(FsmDto dto)
         {
@@ -68,9 +65,50 @@ namespace Validation
                 }
             }
 
+            foreach (var sItem in dto.States)
+            {
+                var stateType = MatchDtoToStateType(sItem.Type);
+
+                var actions = Actions.GetValueOrDefault(sItem.Identifier, new List<Action>());
+
+                var state = new State(sItem.Identifier, sItem.Name, sItem.Parent, stateType);
+
+                state.Actions = actions;
+
+                if (state.ParentId != null)
+                {
+                    if (!ChildStates.TryGetValue(state.ParentId, out var childList))
+                    {
+                        childList = [state];
+                        ChildStates.Add(state.ParentId, childList);
+                    }
+                    else
+                    {
+                        childList.Add(state);
+                    }
+
+                }
+                else
+                {
+                    RootStates.Add(state.Identifier, state);
+                }
+                AllStates.Add(state.Identifier, state);
+            }
+
+            foreach (var state in AllStates.Values)
+            {
+                if (state.ParentId != null && AllStates.TryGetValue(state.ParentId, out var parentState))
+                {
+                    parentState.Children.Add(state);
+                    state.Parent = parentState;
+                }
+            }
+
             foreach (var tItem in dto.Transitions)
             {
                 var actions = Actions.GetValueOrDefault(tItem.Identifier, new List<Action>());
+                var action = actions.Count > 0 ? actions[0] : null;
+
 
                 Trigger? trigger = null;
 
@@ -90,73 +128,48 @@ namespace Validation
                     }
                 }
 
+                if (!AllStates.TryGetValue(tItem.SourceStateIdentifier, out var sourceState) ||
+               !AllStates.TryGetValue(tItem.DestinationStateIdentifier, out var destinationState))
+                {
+                    throw new InvalidOperationException(
+                        $"Transition {tItem.Identifier} references non-existent states");
+                }
+
+
                 var transition = new Transition(
                     tItem.Identifier,
-                    tItem.SourceStateIdentifier,
-                    tItem.DestinationStateIdentifier,
+                    sourceState,
+                    destinationState,
                     trigger,
-                    actions[0], // Only one action per transition
+                    action, // Only one action per transition
                     tItem.GuardCondition
                 );
 
-                if (!SourceTransitions.TryGetValue(transition.SourceStateId, out var sourceList))
+                sourceState.SourceTransitions.Add(transition);
+                destinationState.DestinationTransitions.Add(transition);
+
+                if (!SourceTransitions.TryGetValue(transition.SourceState.Identifier, out var sourceList))
                 {
                     sourceList = [transition];
-                    SourceTransitions.Add(transition.SourceStateId, sourceList);
+                    SourceTransitions.Add(transition.SourceState.Identifier, sourceList);
                 }
                 else
                 {
                     sourceList.Add(transition);
                 }
 
-                if (!DestinationTransitions.TryGetValue(transition.DestinationStateId, out var destList))
+                if (!DestinationTransitions.TryGetValue(transition.DestinationState.Identifier, out var destList))
                 {
                     destList = [transition];
-                    DestinationTransitions.Add(transition.DestinationStateId, destList);
+                    DestinationTransitions.Add(transition.DestinationState.Identifier, destList);
                 }
                 else
                 {
                     destList.Add(transition);
                 }
 
+
             }
-
-            foreach (var sItem in dto.States)
-            {
-                var stateType = MatchDtoToStateType(sItem.Type);
-
-                var actions = Actions.GetValueOrDefault(sItem.Identifier, new List<Action>());
-                var sources = SourceTransitions.GetValueOrDefault(sItem.Identifier, new List<Transition>());
-                var destinations = SourceTransitions.GetValueOrDefault(sItem.Identifier, new List<Transition>());
-
-                var state = new State(sItem.Identifier, sItem.Parent, stateType, actions, sources, destinations);
-
-                if (state.ParentId != null)
-                {
-                    if (!ChildStates.TryGetValue(state.ParentId, out var childList))
-                    {
-                        childList = [state];
-                        ChildStates.Add(state.ParentId, childList);
-                    }
-                    else
-                    {
-                        childList.Add(state);
-                    }
-
-                } else
-                {
-                    RootStates.Add(state);
-                }
-                AllStates.Add(state.Identifier, state);
-            }
-
-            var parents = RootStates;
-
-            foreach (var parent in parents)
-            {
-                parent.Children = ChildStates.GetValueOrDefault(parent.Identifier, []);
-            }
-
         }
 
         public static StateType MatchDtoToStateType(IO.DTO.StateType stateType)
@@ -184,7 +197,5 @@ namespace Validation
             };
             return vst;
         }
-
-        
     }
 }

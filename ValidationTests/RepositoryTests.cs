@@ -7,6 +7,9 @@ using StateType = IO.DTO.StateType;
 
 namespace ValidationTests
 {
+    // These tests test if the indexes and tranformation of the raw data went any good.
+    // At this point in time no validation is done on this data. So things like duplicate keys can throw exceptions.
+
     public class RepositoryTests
     {
         private static FsmRepository CreateExampleLampRepository()
@@ -58,9 +61,41 @@ namespace ValidationTests
         public void StatesDictionary_IsCorrect()
         {
             var repo = CreateExampleLampRepository();
-            Assert.Equal("h1", repo.RootStates["h1"].Id);
-            Assert.Equal("h2", repo.RootStates["h2"].Id);
-            Assert.Equal("h5", repo.RootStates["h5"].Id);
+            Assert.Equal("h1", repo.RootStates["h1"].Identifier);
+            Assert.Equal("h2", repo.RootStates["h2"].Identifier);
+            Assert.Equal("h5", repo.RootStates["h5"].Identifier);
+        }
+
+        [Fact]
+        public void StatesDictionary_Nested_Transaction_IsCorrect()
+        {
+            var repo = CreateExampleLampRepository();
+            repo.AllStates.TryGetValue("h3", out var state);
+            if(state == null)
+            {
+                throw new Exception("Error");
+            }
+            Assert.Contains(state.SourceTransitions, t => t.Identifier == "t2");
+            Assert.Contains(state.SourceTransitions, t => t.SourceState.Identifier == "h3");
+        }
+
+        [Fact]
+        public void ChildStates_Can_Access_Parent()
+        {
+            var repo = CreateExampleLampRepository();
+            repo.ChildStates.TryGetValue("h2", out var states);
+            if (states == null)
+            {
+                throw new Exception("Should have one");
+            } else if(states.Count == 0)
+            {
+                throw new Exception("Should not be empty");
+            }
+
+            foreach (var state in states)
+            {
+                Assert.True(state.Parent!.Identifier == "h2");
+            }
         }
 
         [Fact]
@@ -68,8 +103,8 @@ namespace ValidationTests
         {
             var repo = CreateExampleLampRepository();
             var poweredChildren = repo.ChildStates["h2"];
-            Assert.Contains(poweredChildren, s => s.Id == "h3");
-            Assert.Contains(poweredChildren, s => s.Id == "h4");
+            Assert.Contains(poweredChildren, s => s.Identifier == "h3");
+            Assert.Contains(poweredChildren, s => s.Identifier == "h4");
         }
 
         [Fact]
@@ -101,16 +136,16 @@ namespace ValidationTests
         {
             var repo = CreateExampleLampRepository();
             Assert.True(repo.SourceTransitions.TryGetValue("h1", out var initialTransitions));
-            Assert.Contains(initialTransitions, t => t.Id == "t1" && t.DestinationStateId == "h3");
+            Assert.Contains(initialTransitions, t => t.Identifier == "t1" && t.DestinationState.Identifier == "h3");
 
             Assert.True(repo.SourceTransitions.TryGetValue("h3", out var offTransitions));
-            Assert.Contains(offTransitions, t => t.Id == "t2" && t.DestinationStateId == "h4");
+            Assert.Contains(offTransitions, t => t.Identifier == "t2" && t.DestinationState.Identifier == "h4");
 
             Assert.True(repo.SourceTransitions.TryGetValue("h4", out var onTransitions));
-            Assert.Contains(onTransitions, t => t.Id == "t3" && t.DestinationStateId == "h3");
+            Assert.Contains(onTransitions, t => t.Identifier == "t3" && t.DestinationState.Identifier == "h3");
 
             Assert.True(repo.SourceTransitions.TryGetValue("h2", out var poweredTransitions));
-            Assert.Contains(poweredTransitions, t => t.Id == "t4" && t.DestinationStateId == "h5");
+            Assert.Contains(poweredTransitions, t => t.Identifier == "t4" && t.DestinationState.Identifier == "h5");
         }
 
         [Fact]
@@ -118,13 +153,13 @@ namespace ValidationTests
         {
             var repo = CreateExampleLampRepository();
             Assert.True(repo.DestinationTransitions.TryGetValue("h3", out var destOffTransitions));
-            Assert.Contains(destOffTransitions, t => t.Id == "t1" || t.Id == "t3");
+            Assert.Contains(destOffTransitions, t => t.Identifier == "t1" || t.Identifier == "t3");
 
             Assert.True(repo.DestinationTransitions.TryGetValue("h4", out var destOnTransitions));
-            Assert.Contains(destOnTransitions, t => t.Id == "t2");
+            Assert.Contains(destOnTransitions, t => t.Identifier == "t2");
 
             Assert.True(repo.DestinationTransitions.TryGetValue("h5", out var destFinalTransitions));
-            Assert.Contains(destFinalTransitions, t => t.Id == "t4");
+            Assert.Contains(destFinalTransitions, t => t.Identifier == "t4");
         }
     }
 }

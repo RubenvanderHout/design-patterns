@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -13,36 +14,35 @@ using Validation.ValidationRules;
 
 namespace Validation
 {
-    public sealed class FsmRoot(string title, List<State> rootStates, List<State> allStates)
+    public class ValidationResult
     {
-        public string Title { get; init; } = title;
-        public List<State> RootStates { get; } = rootStates;
-        public List<State> AllStates { get; } = allStates;
+        public bool IsValid { get; set; }
+        public List<string> Errors { get; set; } = [];
     }
 
     public sealed class FsmRuleParser
     {
         public FsmRepository Repo { get; }
-        public FsmRoot FsmRoot { get; } 
-        private readonly List<IValidationRuleVisitor> _rules;
+        private ValidationVisitor RulesValidator { get; }
 
-        public FsmRuleParser(IEnumerable<IValidationRuleVisitor> rules, FsmDto dto)
+        public FsmRuleParser(IEnumerable<IValidationRule> rules, FsmDto dto)
         {
-            _rules = [.. rules];
             Repo = new FsmRepository(dto);
-            FsmRoot = BuildComposites();
+            RulesValidator = new ValidationVisitor(rules);
         }
 
-        private FsmRoot BuildComposites()
+        public ValidationResult Validate()
         {
-            var parents = Repo.RootStates;
-
-            foreach (var parent in parents)
+            foreach (var state in Repo.RootStates.Values)
             {
-                parent.Children = Repo.ChildStates.GetValueOrDefault(parent.Identifier, []);
+                state.Accept(RulesValidator);
             }
 
-            throw new NotImplementedException();
+            return new ValidationResult
+            {
+                IsValid = RulesValidator.IsValid,
+                Errors = [.. RulesValidator.Errors]
+            };
         }
 
     }
