@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace Validation.ValidationRules
 {
-
     public interface IValidationRule
     {
         string RuleName { get; }

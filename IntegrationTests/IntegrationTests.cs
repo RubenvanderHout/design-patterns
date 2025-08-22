@@ -12,7 +12,7 @@ namespace IntegrationTests
     {
     // Utils
     // -----------------------------------------------------------------------------------------------------------------------------
-        public FsmRuleParser LoadFile(String path, List<IValidationRule> rules)
+        public static FsmRuleParser LoadFile(String path, List<IValidationRule> rules)
         {
             ILoaderFactory loaderFactory = new FileLoaderFactory();
             var fileLoader = loaderFactory.CreateLoader();

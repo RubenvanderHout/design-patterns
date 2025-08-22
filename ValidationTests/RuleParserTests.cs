@@ -13,7 +13,7 @@ using StateType = IO.DTO.StateType;
 namespace ValidationTests
 {
     // These test most likely could just be integration tests it's a lot easier to just load the files we already got.
-    // Testing that seperately is not really that usefull. 
+    // Testing that seperately is not really that usefull.
 
     public class RuleParserTests
     {
