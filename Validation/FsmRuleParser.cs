@@ -24,9 +24,9 @@ namespace Validation
     {
         public FsmRepository Repo { get; }
         public FsmRoot FsmRoot { get; } 
-        private readonly List<IValidtionRuleVistor> _rules;
+        private readonly List<IValidationRuleVisitor> _rules;
 
-        public FsmRuleParser(IEnumerable<IValidtionRuleVistor> rules, FsmDto dto)
+        public FsmRuleParser(IEnumerable<IValidationRuleVisitor> rules, FsmDto dto)
         {
             _rules = [.. rules];
             Repo = new FsmRepository(dto);

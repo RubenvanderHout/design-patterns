@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Validation.ValidationRules
 {
-    public interface IValidtionRuleVistor
+    public interface IValidationRuleVisitor
     {
         void VisitState(State state);
         void VisitTransition(Transition transition);
