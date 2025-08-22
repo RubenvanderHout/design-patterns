@@ -123,6 +123,9 @@ public sealed class RepositoryFsmViewBuilder : IFsmViewBuilder
             if (rs.type == StateType.FINAL)   final   = viewById[rs.Id];
         }
 
+        if (initial is null || final is null)
+            throw new InvalidOperationException("FSM must have an initial and final state.");
+
         // 8) Assemble
         var view = new FsmView
         {
