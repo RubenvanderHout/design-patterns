@@ -33,7 +33,7 @@ namespace Validation
 
         public ValidationResult Validate()
         {
-            foreach (var state in Repo.RootStates.Values)
+            foreach (var state in Repo.AllStates.Values)
             {
                 state.Accept(RulesValidator);
             }

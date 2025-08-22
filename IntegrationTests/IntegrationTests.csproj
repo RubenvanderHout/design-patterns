@@ -22,7 +22,6 @@
 
   <ItemGroup>
 	<ProjectReference Include="..\IO\IO.csproj" />
-	<ProjectReference Include="..\UmlViewer\UmlViewer.csproj" />
 	<ProjectReference Include="..\Validation\Validation.csproj" />
   </ItemGroup>
 

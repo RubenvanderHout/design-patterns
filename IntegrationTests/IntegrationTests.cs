@@ -40,7 +40,7 @@ namespace IntegrationTests
             string path = Path.Combine("Test_fsm", "valid_deterministic.fsm");
             var rules = new List<IValidationRule>
             {
-                new IdentifierRule()
+                new NonDeterministicTransitionsRule()
             };
 
             var ruleParser = LoadFile(path, rules);
@@ -57,7 +57,7 @@ namespace IntegrationTests
            
             var rules = new List<IValidationRule>
             {
-                new IdentifierRule()
+                new NonDeterministicTransitionsRule()
             };
 
             var ruleParser = LoadFile(path, rules);
@@ -74,7 +74,7 @@ namespace IntegrationTests
 
             var rules = new List<IValidationRule>
             {
-                new IdentifierRule()
+                new NonDeterministicTransitionsRule()
             };
 
             var ruleParser = LoadFile(path, rules);
@@ -91,7 +91,7 @@ namespace IntegrationTests
 
             var rules = new List<IValidationRule>
             {
-                new IdentifierRule()
+                new NonDeterministicTransitionsRule()
             };
 
             var ruleParser = LoadFile(path, rules);
