@@ -1,17 +1,29 @@
 using IO;
 using IO.DTO;
+using Microsoft.VisualStudio.TestPlatform.Utilities;
+using System.Fabric.Testability.Scenario;
 using System.Globalization;
 using System.IO;
 using Validation;
 using Validation.ValidationRules;
+using Xunit.Abstractions;
 using static IO.FileLoader;
+using static Validation.ValidationRules.ValidationRuleBuilder;
 
 namespace IntegrationTests
 {
     public class IntegrationTests
     {
-    // Utils
-    // -----------------------------------------------------------------------------------------------------------------------------
+        private readonly string _testDataPath = "Test_fsm";
+        private readonly ITestOutputHelper _output;
+       
+        public IntegrationTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
+        // Utils
+        // -----------------------------------------------------------------------------------------------------------------------------
         public static FsmRuleParser LoadFile(String path, List<IValidationRule> rules)
         {
             ILoaderFactory loaderFactory = new FileLoaderFactory();
@@ -24,82 +36,135 @@ namespace IntegrationTests
             return ruleparser;
         }
 
-        public static void NoErrors(ValidationResult result)
+        private static void NoErrors(ValidationResult result)
         {
             Assert.True(result.IsValid && result.Errors.Count == 0);
         }
-        public static void ExpectErrors(ValidationResult result)
+        private void ExpectErrors(ValidationResult result)
         {
             Assert.True(!result.IsValid && result.Errors.Count > 0);
+            _output.WriteLine($"Validation errors: {string.Join(", ", result.Errors)}");
         }
-    // -----------------------------------------------------------------------------------------------------------------------------
+        // -----------------------------------------------------------------------------------------------------------------------------
 
         [Fact]
-        public void Deterministic_NoErrors()
+        public void ExampleUserAccount_NoErrors()
         {
-            string path = Path.Combine("Test_fsm", "valid_deterministic.fsm");
-            var rules = new List<IValidationRule>
-            {
-                new NonDeterministicTransitionsRule()
-            };
+            var path = Path.Combine(_testDataPath, "example_user_account.fsm");
+            var rules = GiveAllValidationRules();
 
             var ruleParser = LoadFile(path, rules);
+            var result = ruleParser.Validate();
+            
+            NoErrors(result);
+        }
 
+        [Fact]
+        public void Example_Lamp_NoErrors()
+        {
+            var path = Path.Combine(_testDataPath, "example_lamp.fsm");
+            var rules = GiveAllValidationRules();
+
+            var ruleParser = LoadFile(path, rules);
             var result = ruleParser.Validate();
 
             NoErrors(result);
         }
 
         [Fact]
-        public void Deterministic_Triggers_ExpectErrors()
+        public void Deterministic_NoErrors()
         {
-            string path = Path.Combine("Test_fsm", "invalid_deterministic1.fsm");
-           
+            var path = Path.Combine(_testDataPath, "valid_deterministic.fsm");
             var rules = new List<IValidationRule>
             {
                 new NonDeterministicTransitionsRule()
             };
 
             var ruleParser = LoadFile(path, rules);
+            var result = ruleParser.Validate();
 
+            NoErrors(result);
+        }
+
+        [Fact]
+        public void Deterministic_Triggers_Bad_ExpectErrors()
+        {
+            var path = Path.Combine(_testDataPath, "invalid_deterministic1.fsm");
+            var rules = new List<IValidationRule>
+            {
+                new NonDeterministicTransitionsRule()
+            };
+
+            var ruleParser = LoadFile(path, rules);
             var result = ruleParser.Validate();
 
             ExpectErrors(result);
         }
 
         [Fact]
-        public void Deterministic_Guards_ExpectErrors()
+        public void Deterministic_Guards_Bad_ExpectErrors()
         {
-            string path = Path.Combine("Test_fsm", "invalid_deterministic2.fsm");
-
+            var path = Path.Combine(_testDataPath, "invalid_deterministic2.fsm");
             var rules = new List<IValidationRule>
             {
                 new NonDeterministicTransitionsRule()
             };
 
             var ruleParser = LoadFile(path, rules);
-
             var result = ruleParser.Validate();
 
             ExpectErrors(result);
         }
 
         [Fact]
-        public void Deterministic_Automatic_With_Others_ExpectErrors()
+        public void Deterministic_Unreachable_Because_Automatic_Transaction_ExpectErrors()
         {
-            string path = Path.Combine("Test_fsm", "invalid_deterministic3.fsm");
-
+            var path = Path.Combine(_testDataPath, "invalid_deterministic3.fsm");
             var rules = new List<IValidationRule>
             {
                 new NonDeterministicTransitionsRule()
             };
 
             var ruleParser = LoadFile(path, rules);
-
             var result = ruleParser.Validate();
 
             ExpectErrors(result);
         }
 
+        [Fact]
+        public void Invalid_Compound_State_ExcpectErrors()
+        {
+            var path = Path.Combine(_testDataPath, "invalid_compound.fsm");
+            var rules = GiveAllValidationRules();
+
+            var ruleParser = LoadFile(path, rules);
+            var result = ruleParser.Validate();
+
+            ExpectErrors(result);
+        }
+
+        [Fact]
+        public void Valid_Compound_State_NoErrors()
+        {
+            var path = Path.Combine(_testDataPath, "valid_compound.fsm");
+            var rules = GiveAllValidationRules();
+
+            var ruleParser = LoadFile(path, rules);
+            var result = ruleParser.Validate();
+
+            NoErrors(result);
+        }
+
+        [Fact]
+        public void Unreachable_State_ExpectErrors()
+        {
+            var path = Path.Combine(_testDataPath, "invalid_unreachable.fsm");
+            var rules = GiveAllValidationRules();
+
+            var ruleParser = LoadFile(path, rules);
+            var result = ruleParser.Validate();
+
+            ExpectErrors(result);
+        }
     }
 }

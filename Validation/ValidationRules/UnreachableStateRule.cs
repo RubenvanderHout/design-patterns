@@ -16,8 +16,9 @@ namespace Validation.ValidationRules
         {
             var errors = new List<string>();
 
-            if(state.SourceTransitions.Count == 0 && state.DestinationTransitions.Count > 0 || 
-                state.SourceTransitions.Count > 0 && state.DestinationTransitions.Count == 0)
+            var noIncomingTransitons = state.DestinationTransitions.Count == 0;
+            var hasLeavingTransitions = state.SourceTransitions.Count >= 1;
+            if (noIncomingTransitons && hasLeavingTransitions)
             {
                 errors.Add($"State '{state.Identifier}' is Unreachable.");
             }

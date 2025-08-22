@@ -16,11 +16,6 @@ namespace Validation.ValidationRules
         {
             var errors = new List<string>();
 
-            if (transition.Trigger == null && string.IsNullOrEmpty(transition.GuardCondition))
-            {
-                errors.Add($"Transition '{transition.Identifier}' must have either a trigger or a guard condition");
-            }
-
             if (transition.SourceState.Type == StateType.FINAL)
             {
                 errors.Add($"Transition '{transition.Identifier}' cannot originate from a final state");
