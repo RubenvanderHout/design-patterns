@@ -5,43 +5,33 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Collections.Specialized.BitVector32;
 
 namespace Validation
 {
+    //Should be removed when the ui is changed
     public sealed record RawState(
         string Id,
         string? ParentId,
         string Name,
+        List<Action> actions,
         StateType type
-    );
-
-    public sealed record RawTransition(
-        string Id, 
-        string SourceStateId, 
-        string DestinationStateId, 
-        string? TriggerId,
-        string GuardCondition
     );
 
     public class FsmRepository
     {
-        // TriggerId -> Trigger
-        public Dictionary<string, Trigger> Triggers { get; } = [];
-        // TransitionId or StateId -> Action
-        public Dictionary<string, List<Action>> Actions { get; } = [];
-      
-        // StateId -> Source Transitions 
-        public readonly Dictionary<string, List<RawTransition>> SourceTransitions = [];
-        // StateId -> Destination Transitions
-        public readonly Dictionary<string, List<RawTransition>> DestinationTransitions = [];
+        public Dictionary<string, State> RootStates { get; } = [];
         // StateID -> State
-        public readonly Dictionary<string, RawState> RawStates = [];
+        public Dictionary<string, State> AllStates { get; } = [];
+        // StateID -> List<State> children
+        public Dictionary<string, List<State>> ChildStates { get; } = [];
+        // StateId -> Source Transitions 
+        public Dictionary<string, List<Transition>> SourceTransitions { get; } = [];
+        // StateId -> Destination Transitions
+        public Dictionary<string, List<Transition>> DestinationTransitions { get; } = [];
 
-        // StatID -> List<State> children
-        public readonly Dictionary <string, List<RawState>> RawChildren = [];
-
-        public RawState? RootState { get => rootState; }
-        private RawState? rootState = null;
+        public Dictionary<string, Trigger> Triggers { get; } = [];
+        public Dictionary<string, List<Action>> Actions { get; } = [];
 
         public FsmRepository(FsmDto dto)
         {
@@ -78,19 +68,19 @@ namespace Validation
             foreach (var sItem in dto.States)
             {
                 var stateType = MatchDtoToStateType(sItem.Type);
-                var state = new RawState(sItem.Identifier, sItem.Parent, sItem.Name, stateType);
 
-                if(state.type == StateType.INITIAL)
-                {
-                    rootState = state;
-                }
+                var actions = Actions.GetValueOrDefault(sItem.Identifier, new List<Action>());
+
+                var state = new State(sItem.Identifier, sItem.Name, sItem.Parent, stateType);
+
+                state.Actions = actions;
 
                 if (state.ParentId != null)
                 {
-                    if (!RawChildren.TryGetValue(state.ParentId, out var childList))
+                    if (!ChildStates.TryGetValue(state.ParentId, out var childList))
                     {
                         childList = [state];
-                        RawChildren.Add(state.ParentId, childList);
+                        ChildStates.Add(state.ParentId, childList);
                     }
                     else
                     {
@@ -100,40 +90,84 @@ namespace Validation
                 }
                 else
                 {
-                    RawStates.Add(state.Id, state);
+                    RootStates.Add(state.Identifier, state);
                 }
+                AllStates.Add(state.Identifier, state);
+            }
 
+            foreach (var state in AllStates.Values)
+            {
+                if (state.ParentId != null && AllStates.TryGetValue(state.ParentId, out var parentState))
+                {
+                    parentState.Children.Add(state);
+                    state.Parent = parentState;
+                }
             }
 
             foreach (var tItem in dto.Transitions)
             {
-                var transition = new RawTransition(
-                    tItem.Identifier, 
-                    tItem.SourceStateIdentifier, 
-                    tItem.DestinationStateIdentifier, 
-                    tItem.TriggerIdentifier,
+                var actions = Actions.GetValueOrDefault(tItem.Identifier, new List<Action>());
+                var action = actions.Count > 0 ? actions[0] : null;
+
+
+                Trigger? trigger = null;
+
+                if (tItem.TriggerIdentifier != null)
+                {
+                    var hasTrigger = Triggers.TryGetValue(tItem.TriggerIdentifier, out trigger);
+
+                    if (!hasTrigger)
+                    {
+                        // This is the only validation that happens in the repository.
+                        // Most others should happen in the rule parser but because this is a reference to something
+                        // That doesn't exist this is a valid exception the user really did something bad
+                        throw new InvalidOperationException(
+                            $"Error: Transition {tItem.Identifier} " +
+                            $"references non existing trigger {tItem.TriggerIdentifier}"
+                        );
+                    }
+                }
+
+                if (!AllStates.TryGetValue(tItem.SourceStateIdentifier, out var sourceState) ||
+               !AllStates.TryGetValue(tItem.DestinationStateIdentifier, out var destinationState))
+                {
+                    throw new InvalidOperationException(
+                        $"Transition {tItem.Identifier} references non-existent states");
+                }
+
+
+                var transition = new Transition(
+                    tItem.Identifier,
+                    sourceState,
+                    destinationState,
+                    trigger,
+                    action, // Only one action per transition
                     tItem.GuardCondition
                 );
 
-                if (!SourceTransitions.TryGetValue(transition.SourceStateId, out var sourceList))
+                sourceState.SourceTransitions.Add(transition);
+                destinationState.DestinationTransitions.Add(transition);
+
+                if (!SourceTransitions.TryGetValue(transition.SourceState.Identifier, out var sourceList))
                 {
                     sourceList = [transition];
-                    SourceTransitions.Add(transition.SourceStateId, sourceList);
+                    SourceTransitions.Add(transition.SourceState.Identifier, sourceList);
                 }
                 else
                 {
                     sourceList.Add(transition);
                 }
 
-                if (!DestinationTransitions.TryGetValue(transition.DestinationStateId, out var destList))
+                if (!DestinationTransitions.TryGetValue(transition.DestinationState.Identifier, out var destList))
                 {
                     destList = [transition];
-                    DestinationTransitions.Add(transition.DestinationStateId, destList);
+                    DestinationTransitions.Add(transition.DestinationState.Identifier, destList);
                 }
                 else
                 {
                     destList.Add(transition);
                 }
+
 
             }
         }

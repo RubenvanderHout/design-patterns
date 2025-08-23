@@ -7,26 +7,26 @@ using System.Threading.Tasks;
 
 namespace Validation.ValidationRules
 {
+    public class IdentifierRule : BaseValidationRule
+    {
+        public override string RuleName => "IdentifierRule";
 
-    //TODO Reimplement this later
-    //public sealed class IdentifierRule : IValidationRule
-    //{
-    //    private static readonly Regex IdentifierRegex = new(@"[a-zA-Z]+\S*", RegexOptions.Compiled);
+        public override bool ShouldValidate(IFsmElement element) => element is IFsmElement;
 
-    //    public void Apply(object obj, FsmDefinition current)
-    //    {
-    //        string? id = obj switch
-    //        {
-    //            State s => s.Identifier,
-    //            Trigger t => t.Identifier,
-    //            ActionDef a => a.OwnerIdentifier, // optional: could validate action owner differently
-    //            Transition tr => tr.Identifier,
-    //            _ => null
-    //        };
+        private static readonly Regex IdentifierRegex = new(@"[a-zA-Z]+\S*", RegexOptions.Compiled);
+        private static IEnumerable<string> CheckIdentifier(FsmNode node)
+        {
+            var errors = new List<string>();
 
-    //        if (id != null && !IdentifierRegex.IsMatch(id))
-    //            throw new ArgumentException($"Invalid identifier '{id}'. Must be [a-zA-Z]+\\S*");
-    //    }
-    
-    //}
+            if (!IdentifierRegex.IsMatch(node.Identifier))
+                errors.Add($"Invalid identifier '{node.Identifier}'. Must be [a-zA-Z]+\\S*");
+
+            return errors;
+        }
+
+        public override IEnumerable<string> Validate(State state) => CheckIdentifier(state);
+        public override IEnumerable<string> Validate(Transition transition) => CheckIdentifier(transition);
+        public override IEnumerable<string> Validate(Trigger trigger) => CheckIdentifier(trigger);
+        public override IEnumerable<string> Validate(Action action) => CheckIdentifier(action);
+    }
 }

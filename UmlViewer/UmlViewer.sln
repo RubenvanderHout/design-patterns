@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ValidationTests", "..\Valid
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IO.Tests", "..\IO.Tests\IO.Tests.csproj", "{BEAC677F-4589-498E-A151-17F95FE8183E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "..\IntegrationTests\IntegrationTests.csproj", "{AAF12A70-7E6F-412A-85F4-B188C591A235}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{BEAC677F-4589-498E-A151-17F95FE8183E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BEAC677F-4589-498E-A151-17F95FE8183E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BEAC677F-4589-498E-A151-17F95FE8183E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAF12A70-7E6F-412A-85F4-B188C591A235}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAF12A70-7E6F-412A-85F4-B188C591A235}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAF12A70-7E6F-412A-85F4-B188C591A235}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAF12A70-7E6F-412A-85F4-B188C591A235}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

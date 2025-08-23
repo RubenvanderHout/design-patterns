@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -13,51 +14,36 @@ using Validation.ValidationRules;
 
 namespace Validation
 {
- 
+    public class ValidationResult
+    {
+        public bool IsValid { get; set; }
+        public List<string> Errors { get; set; } = [];
+    }
+
     public sealed class FsmRuleParser
     {
-        private readonly List<IValidtionRuleVistor> _rules;
-        private readonly FsmRepository _repo;
+        public FsmRepository Repo { get; }
+        private ValidationVisitor RulesValidator { get; }
 
-        public FsmRuleParser(IEnumerable<IValidtionRuleVistor> rules, FsmRepository repo)
+        public FsmRuleParser(IEnumerable<IValidationRule> rules, FsmDto dto)
         {
-            _repo = repo;
-            _rules = [.. rules];
-
-            var result = BuildComposite(_repo.RootState);
+            Repo = new FsmRepository(dto);
+            RulesValidator = new ValidationVisitor(rules);
         }
 
-        private State BuildComposite(RawState? rootstate)
+        public ValidationResult Validate()
         {
-            //if (rootstate == null)
-            //{
-            //    throw new InvalidOperationException("Syntax error: Should have an INITIAL state");
-            //}
+            foreach (var state in Repo.AllStates.Values)
+            {
+                state.Accept(RulesValidator);
+            }
 
-            //// Get Children
-
-            //// Get actions
-            //// Get sourceTransitions
-            //    // Get Trigger 
-            //    // Get Action
-            //// Get destinatnionTransitions
-            //    // Get Trigger 
-            //    // Get Action
-
-
-
-            //_repo.Rawchildren.TryGetValue(rootstate.Id, out var children);
-
-            //children
-            //    .Select(child => )
-
-
-
-
-            //return new State(rootstate.Id, rootstate.type, );
-            throw new NotImplementedException();
+            return new ValidationResult
+            {
+                IsValid = RulesValidator.IsValid,
+                Errors = [.. RulesValidator.Errors]
+            };
         }
-
 
     }
 }

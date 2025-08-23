@@ -172,18 +172,25 @@ namespace UmlViewer.Tests
         [Fact]
         public void Step8_Throws_When_NoInitialOrFinal()
         {
-            var repo = CreateExampleLampRepository();
-
-            repo.RawStates.Clear();
-            repo.RawStates["h2"] = new RawState("h2", null, "Powered up", Validation.StateType.COMPOUND);
-            repo.RawChildren.Clear();
-            repo.RawChildren["h2"] = new List<RawState>
+            // Build a DTO that *omits* INITIAL and FINAL states (only a COMPOUND with two SIMPLE children)
+            var badStates = new[]
             {
-                new RawState("h3", "h2", "Lamp is off", Validation.StateType.SIMPLE),
-                new RawState("h4", "h2", "Lamp is on",  Validation.StateType.SIMPLE),
+                new StateDto { Identifier = "h2", Parent = null, Name = "Powered up",  Type = DtoStateType.COMPOUND },
+                new StateDto { Identifier = "h3", Parent = "h2", Name = "Lamp is off", Type = DtoStateType.SIMPLE },
+                new StateDto { Identifier = "h4", Parent = "h2", Name = "Lamp is on",  Type = DtoStateType.SIMPLE },
             };
 
+            var dto = new FsmDto
+            {
+                States      = badStates.ToList(),
+                Triggers    = new List<TriggerDto>(),
+                Actions     = new List<ActionDto>(),
+                Transitions = new List<TransitionDto>(),
+            };
+
+            var repo = new FsmRepository(dto);
             var builder = new RepositoryFsmViewBuilder(repo);
+
             Assert.Throws<InvalidOperationException>(() => builder.BuildFromRepository("Broken"));
         }
 

@@ -2,6 +2,7 @@
 using Validation;             
 using UmlViewer.UI;
 using static IO.FileLoader;
+using Validation.ValidationRules;
 
 bool showHelp = false;
 bool running = true;
@@ -73,17 +74,13 @@ static void LoadAndRenderFlow(ILoaderFactory loaderFactory)
         var parser = new FsmFileParser();
         var dto = parser.Parse(raw);
 
-        
-        var repo = new FsmRepository(dto);
-        if (repo.RootState is null)
-        {
-            ShowError("Validation produced no RootState (INITIAL). Check the FSM file.");
-            return;
-        }
+        var rules = Array.Empty<IValidationRule>();
+        var ruleParser = new FsmRuleParser(rules, dto);
+        var repo = ruleParser.Repo;   
 
         
         var builder = new RepositoryFsmViewBuilder(repo);
-        var title = Path.GetFileNameWithoutExtension(path);
+        var title = TryExtractTitle(raw) ?? Path.GetFileNameWithoutExtension(path);
         var view = builder.BuildFromRepository(title);
 
         var renderer = new TextRenderer();
@@ -113,6 +110,24 @@ static void LoadAndRenderFlow(ILoaderFactory loaderFactory)
     {
         ShowError($"Unexpected error: {ex.Message}");
     }
+}
+
+static string? TryExtractTitle(string raw)
+{
+    var lines = raw.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+    foreach (var line in lines)
+    {
+        var t = line.Trim();
+        if (t.Length == 0) continue;
+        if (t.StartsWith("#"))
+        {
+            var candidate = t.TrimStart('#').Trim();
+            if (candidate.Length > 0) return System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(candidate.ToLower());
+            continue;
+        }
+        break; // real content reached
+    }
+    return null;
 }
 
 static void ShowError(string message)
