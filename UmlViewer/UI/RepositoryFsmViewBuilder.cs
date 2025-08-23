@@ -25,7 +25,7 @@ public sealed class RepositoryFsmViewBuilder : IFsmViewBuilder
         // 2) Collect reachable states from all roots using ChildStates index
         var allStates = new Dictionary<string, State>(StringComparer.Ordinal);
         foreach (var root in topLevel)
-            CollectStates(root, allStates);
+            CollectStates(root.Value, allStates);
 
         // 3) Map to StateView
         var viewById = new Dictionary<string, StateView>(allStates.Count, StringComparer.Ordinal);
@@ -58,8 +58,8 @@ public sealed class RepositoryFsmViewBuilder : IFsmViewBuilder
         var rootsForView = new List<StateView>();
         foreach (var root in topLevel)
         {
-            if (root.Type is StateType.INITIAL or StateType.FINAL) continue;
-            rootsForView.Add(viewById[root.Identifier]);
+            if (root.Value.Type is StateType.INITIAL or StateType.FINAL) continue;
+            rootsForView.Add(viewById[root.Value.Identifier]);
         }
 
         foreach (var parent in allStates.Values)
@@ -83,16 +83,16 @@ public sealed class RepositoryFsmViewBuilder : IFsmViewBuilder
 
             foreach (var t in outgoing)
             {
-                var toName = viewById.TryGetValue(t.DestinationStateId, out var toV)
+                var toName = viewById.TryGetValue(t.DestinationState.Identifier, out var toV)
                     ? toV.DisplayName
-                    : t.DestinationStateId;
+                    : t.DestinationState.Identifier;
 
                 var triggerText = t.Trigger?.Description ?? string.Empty;
 
                 var tv = new TransitionView
                 {
-                    FromIdentifier = t.SourceStateId,
-                    ToIdentifier   = t.DestinationStateId,
+                    FromIdentifier = t.SourceState.Identifier,
+                    ToIdentifier   = t.DestinationState.Identifier,
                     ToDisplayName  = toName,
                     TriggerIdentifier = triggerText,
                     GuardCondition = t.GuardCondition
