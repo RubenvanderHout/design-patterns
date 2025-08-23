@@ -74,7 +74,7 @@ static void LoadAndRenderFlow(ILoaderFactory loaderFactory)
         var parser = new FsmFileParser();
         var dto = parser.Parse(raw);
 
-        var rules = Array.Empty<IValidationRule>();
+        var rules = ValidationRuleBuilder.GiveAllValidationRules();
         var ruleParser = new FsmRuleParser(rules, dto);
         var repo = ruleParser.Repo;   
 
