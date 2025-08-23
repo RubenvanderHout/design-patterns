@@ -55,6 +55,16 @@ namespace Validation
         public override void Accept(IVisitor visitor)
         {
             visitor.Visit(this);
+
+            foreach (var child in Children)
+            {
+                visitor.Visit(child);
+            }
+
+            foreach (var transition in SourceTransitions)
+            {
+                visitor.Visit(transition);
+            }
         }
     }
 
@@ -97,6 +107,16 @@ namespace Validation
         public override void Accept(IVisitor visitor)
         {
             visitor.Visit(this);
+            
+            if(Action != null)
+            {
+                visitor.Visit(Action);
+            }
+
+            if (Trigger != null)
+            {
+                visitor.Visit(Trigger);
+            }
         }
     }
 }

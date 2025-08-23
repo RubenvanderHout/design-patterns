@@ -34,15 +34,6 @@ namespace Validation
                 _errors.AddRange(rule.Validate(state));
             }
 
-            foreach (var child in state.Children)
-            {
-                child.Accept(this);
-            }
-
-            foreach (var transition in state.SourceTransitions)
-            {
-                transition.Accept(this);
-            }
         }
 
         public void Visit(Transition transition)
@@ -51,10 +42,6 @@ namespace Validation
             {
                 _errors.AddRange(rule.Validate(transition));
             }
-
-            // Visit the action and trigger associated with this transition
-            transition.Action?.Accept(this);
-            transition.Trigger?.Accept(this);
         }
 
         public void Visit(Action action)
