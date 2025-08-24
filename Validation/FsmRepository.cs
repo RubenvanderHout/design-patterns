@@ -9,7 +9,6 @@ using static System.Collections.Specialized.BitVector32;
 
 namespace Validation
 {
-    //Should be removed when the ui is changed
     public sealed record RawState(
         string Id,
         string? ParentId,
@@ -118,9 +117,6 @@ namespace Validation
 
                     if (!hasTrigger)
                     {
-                        // This is the only validation that happens in the repository.
-                        // Most others should happen in the rule parser but because this is a reference to something
-                        // That doesn't exist this is a valid exception the user really did something bad
                         throw new InvalidOperationException(
                             $"Error: Transition {tItem.Identifier} " +
                             $"references non existing trigger {tItem.TriggerIdentifier}"
@@ -141,7 +137,7 @@ namespace Validation
                     sourceState,
                     destinationState,
                     trigger,
-                    action, // Only one action per transition
+                    action,
                     tItem.GuardCondition
                 );
 
