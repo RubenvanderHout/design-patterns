@@ -25,10 +25,10 @@ namespace Validation
         public FsmRepository Repo { get; }
         private ValidationVisitor RulesValidator { get; }
 
-        public FsmRuleParser(IEnumerable<IValidationRule> rules, FsmDto dto)
+        public FsmRuleParser(IRuleComponent rulesRoot, FsmDto dto)
         {
             Repo = new FsmRepository(dto);
-            RulesValidator = new ValidationVisitor(rules);
+            RulesValidator = new ValidationVisitor(rulesRoot);
         }
 
         public ValidationResult Validate()

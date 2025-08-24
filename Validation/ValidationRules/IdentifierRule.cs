@@ -11,8 +11,6 @@ namespace Validation.ValidationRules
     {
         public override string RuleName => "IdentifierRule";
 
-        public override bool ShouldValidate(IFsmElement element) => element is IFsmElement;
-
         private static readonly Regex IdentifierRegex = new(@"[a-zA-Z]+\S*", RegexOptions.Compiled);
         private static IEnumerable<string> CheckIdentifier(FsmNode node)
         {

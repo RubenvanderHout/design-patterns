@@ -1,6 +1,7 @@
 ﻿using IO.DTO;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -125,10 +126,7 @@ namespace ValidationTests
                Transitions = transitions
             };
 
-            var rules = new List<IValidationRule>
-            {
-                new IdentifierRule()
-            };
+            var rules = new RuleLeaf(new IdentifierRule());
 
             var parser = new FsmRuleParser(rules, dto);
             var result = parser.Validate();
@@ -158,10 +156,7 @@ namespace ValidationTests
                 Transitions = transitions
             };
 
-            var rules = new List<IValidationRule>
-            {
-                new IdentifierRule()
-            };
+            var rules = new RuleLeaf(new IdentifierRule());
 
             var parser = new FsmRuleParser(rules, dto);
             var result = parser.Validate();
@@ -191,11 +186,9 @@ namespace ValidationTests
                 Transitions = transitions
             };
 
-            var rules = new List<IValidationRule>
-            {
-                new InitialStateRule(),
-                new FinalStateRule(),
-            };
+            var rules = new RuleGroup("Initial and Final State Rules")
+                .Add(new RuleLeaf(new InitialStateRule()))
+                .Add(new RuleLeaf(new FinalStateRule()));
 
             var parser = new FsmRuleParser(rules, dto);
             var result = parser.Validate();
@@ -225,11 +218,9 @@ namespace ValidationTests
                 Transitions = transitions
             };
 
-            var rules = new List<IValidationRule>
-            {
-                new InitialStateRule(),
-                new FinalStateRule()
-            };
+            var rules = new RuleGroup("Initial and Final State Rules")
+                .Add(new RuleLeaf(new InitialStateRule()))
+                .Add(new RuleLeaf(new FinalStateRule()));
 
             var parser = new FsmRuleParser(rules, dto);
             var result = parser.Validate();

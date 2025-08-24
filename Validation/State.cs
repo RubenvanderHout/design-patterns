@@ -38,10 +38,10 @@ namespace Validation
 
     public class State(
         string identifier,
-        string name, 
+        string name,
         string? parentId,
         StateType type
-    ) : FsmNode(identifier) 
+    ) : FsmNode(identifier)
     {
         public string? ParentId { get; set; } = parentId;
         public string Name { get; set; } = name;
@@ -58,12 +58,12 @@ namespace Validation
 
             foreach (var child in Children)
             {
-                visitor.Visit(child);
+                child.Accept(visitor);
             }
 
             foreach (var transition in SourceTransitions)
             {
-                visitor.Visit(transition);
+                transition.Accept(visitor);
             }
         }
     }
@@ -96,7 +96,7 @@ namespace Validation
         Trigger? trigger,
         Action? action,
         string guardCondition
-        ) : FsmNode(identifier)
+    ) : FsmNode(identifier)
     {
         public State SourceState { get; set; } = sourceState;
         public State DestinationState { get; set; } = destinationState;
@@ -107,15 +107,15 @@ namespace Validation
         public override void Accept(IVisitor visitor)
         {
             visitor.Visit(this);
-            
-            if(Action != null)
+
+            if (Action != null)
             {
-                visitor.Visit(Action);
+                Action.Accept(visitor);
             }
 
             if (Trigger != null)
             {
-                visitor.Visit(Trigger);
+                Trigger.Accept(visitor);
             }
         }
     }
