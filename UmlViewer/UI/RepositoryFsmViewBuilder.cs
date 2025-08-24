@@ -26,14 +26,7 @@ public sealed class RepositoryFsmViewBuilder : IFsmViewBuilder
 
         var orderedTop = OrderTopLevelTransitions(topLevelTransitions, initial.Identifier);
 
-        var view = new FsmView
-        {
-            Title   = title,
-            Initial = initial,
-            Final   = final
-        };
-        view.RootStates.AddRange(rootViews);
-        view.TopLevelTransitions.AddRange(orderedTop);
+        var view = FsmView.Create(title, initial, final, rootViews, orderedTop);
         return view;
     }
 

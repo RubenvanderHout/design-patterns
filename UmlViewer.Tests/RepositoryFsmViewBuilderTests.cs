@@ -11,8 +11,7 @@ namespace UmlViewer.Tests
 {
     public class RepositoryFsmViewBuilderTests
     {
-        // --------- Arrange helpers ---------
-
+        
         private static FsmRepository CreateExampleLampRepository()
         {
             var states = new[]
@@ -60,8 +59,8 @@ namespace UmlViewer.Tests
 
         private static FsmView Build(FsmRepository repo, string title = "Timed Light")
         {
-            var b = new RepositoryFsmViewBuilder(repo);
-            return b.BuildFromRepository(title);
+            var b = new RepositoryFsmViewBuilder();
+            return b.Build(repo, title);
         }
 
         [Fact]
@@ -172,7 +171,7 @@ namespace UmlViewer.Tests
         [Fact]
         public void Step8_Throws_When_NoInitialOrFinal()
         {
-            // Build a DTO that *omits* INITIAL and FINAL states (only a COMPOUND with two SIMPLE children)
+            
             var badStates = new[]
             {
                 new StateDto { Identifier = "h2", Parent = null, Name = "Powered up",  Type = DtoStateType.COMPOUND },
@@ -189,9 +188,9 @@ namespace UmlViewer.Tests
             };
 
             var repo = new FsmRepository(dto);
-            var builder = new RepositoryFsmViewBuilder(repo);
+            var builder = new RepositoryFsmViewBuilder();
 
-            Assert.Throws<InvalidOperationException>(() => builder.BuildFromRepository("Broken"));
+            Assert.Throws<InvalidOperationException>(() => builder.Build(repo, "Broken"));
         }
 
         // --------- helper ---------
@@ -204,7 +203,6 @@ namespace UmlViewer.Tests
                 var found = Dfs(r, id);
                 if (found is not null) return found;
             }
-            // consider initial/final if someone asks for them explicitly
             if (view.Initial?.Identifier == id) return view.Initial;
             if (view.Final?.Identifier   == id) return view.Final;
             throw new Xunit.Sdk.XunitException($"State '{id}' not found in view.");

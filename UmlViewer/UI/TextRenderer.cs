@@ -25,13 +25,13 @@ public sealed class TextRenderer : IRenderer
             .ToList();
 
         foreach (var t in initialTransitions)
-            VisitTransition(t, 0);
+            DrawTransition(t, 0);
 
         foreach (var root in view.RootStates)
-            VisitState(root, 0);
+            DrawState(root, 0);
 
         foreach (var t in otherTopLevel)
-            VisitTransition(t, 0);
+            DrawTransition(t, 0);
 
         if (view.Final is not null)
             _sb.AppendLine($"(O) Final state ({view.Final.DisplayName})");
@@ -39,7 +39,7 @@ public sealed class TextRenderer : IRenderer
         return _sb.ToString();
     }
 
-    private void VisitState(StateView s, int depth)
+    private void DrawState(StateView s, int depth)
     {
         var indent = new string(' ', depth * 3);
 
@@ -51,7 +51,7 @@ public sealed class TextRenderer : IRenderer
             _sb.AppendLine();
 
             foreach (var child in s.Children)
-                VisitState(child, depth + 1);
+                DrawState(child, depth + 1);
 
             _sb.AppendLine($"{indent}======================================================================");
         }
@@ -66,12 +66,12 @@ public sealed class TextRenderer : IRenderer
             _sb.AppendLine($"{indent}----------------------------------------------------------------------");
 
             foreach (var tr in s.Outgoing)
-                VisitTransition(tr, depth);
+                DrawTransition(tr, depth);
         }
         _sb.AppendLine();
     }
 
-    private void VisitTransition(TransitionView t, int depth)
+    private void DrawTransition(TransitionView t, int depth)
     {
         var indent  = new string(' ', depth * 3);
         var trigger = t.TriggerIdentifier ?? "";
