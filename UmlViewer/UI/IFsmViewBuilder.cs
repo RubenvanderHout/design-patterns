@@ -3,7 +3,8 @@ using Validation;
 
 namespace UmlViewer.UI;
 
+
 public interface IFsmViewBuilder
 {
-    FsmView Build(State root, string title = "FSM (validated)");
+    FsmView Build(FsmRepository repo, string title = "FSM");
 }
