@@ -58,7 +58,7 @@ static void LoadAndRenderFlow(ILoaderFactory loaderFactory)
         return;
     }
 
-    var path = input.Trim('"', ' '); // allow pasted paths with quotes
+    var path = input.Trim('"', ' ');
 
     if (!File.Exists(path))
     {
