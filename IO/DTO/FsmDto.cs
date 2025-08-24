@@ -1,5 +1,5 @@
 namespace IO.DTO;
-public sealed class FsmDto
+public sealed record class FsmDto
 {
     public List<StateDto> States { get; init; } = new();
     public List<TriggerDto> Triggers { get; init; } = new();

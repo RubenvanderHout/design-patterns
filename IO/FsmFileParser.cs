@@ -60,10 +60,13 @@ public sealed class FsmFileParser : IParser
 
     static string Normalize(string input)
     {
-        // Remove full-line comments, preserve other whitespace
-        var noComments = Regex.Replace(input, @"^\s*#.*$", string.Empty, RegexOptions.Multiline);
+        if (input.Length > 0 && input[0] == '\uFEFF')
+            input = input.Substring(1);
+
+        Regex s_fullLineComment = new(@"^\s*#.*$", RegexOptions.Multiline | RegexOptions.Compiled);
+        var noComments = s_fullLineComment.Replace(input, string.Empty);
+
         var lf = noComments.Replace("\r\n", "\n").Replace('\r', '\n');
-        // Remove trailing spaces only
         return string.Join("\n", lf.Split('\n').Select(s => s.TrimEnd()));
     }
 }
