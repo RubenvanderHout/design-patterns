@@ -4,42 +4,85 @@ using Validation;
 namespace UmlViewer.UI;
 
 /// <summary>
-/// Builds an FsmView from Validation.FsmRepository (new public API).
+/// Builds an FsmView from Validation.FsmRepository
 /// </summary>
 public sealed class RepositoryFsmViewBuilder : IFsmViewBuilder
 {
-    private readonly FsmRepository _repo;
-    public RepositoryFsmViewBuilder(FsmRepository repo) =>
-        _repo = repo ?? throw new ArgumentNullException(nameof(repo));
-
-    public FsmView Build(State root, string title = "FSM (validated)") =>
-        throw new NotSupportedException("Use BuildFromRepository(title).");
-
-    public FsmView BuildFromRepository(string title = "FSM")
+    public FsmView Build(FsmRepository repo, string title = "FSM")
     {
-        // 1) Top-level roots
-        var topLevel = _repo.RootStates;
-        if (topLevel.Count == 0)
+        if (repo == null) throw new ArgumentNullException(nameof(repo));
+
+        var allStates = CollectAllStates(repo);
+
+        var viewById = MapStates(allStates);
+
+        AttachActions(allStates, viewById);
+
+        var rootViews = BuildRootsForView(repo, allStates, viewById);
+
+        var topLevelTransitions = BuildTransitions(repo, allStates, viewById);
+
+        var (initial, final) = FindInitialAndFinal(allStates, viewById);
+
+        var orderedTop = OrderTopLevelTransitions(topLevelTransitions, initial.Identifier);
+
+        var view = new FsmView
+        {
+            Title   = title,
+            Initial = initial,
+            Final   = final
+        };
+        view.RootStates.AddRange(rootViews);
+        view.TopLevelTransitions.AddRange(orderedTop);
+        return view;
+    }
+
+    private static Dictionary<string, State> CollectAllStates(FsmRepository repo)
+    {
+        var result = new Dictionary<string, State>(StringComparer.Ordinal);
+        foreach (var kv in repo.RootStates)
+            CollectFromRoot(repo, kv.Value, result);
+        if (result.Count == 0)
             throw new InvalidOperationException("Repository has no top-level states.");
+        return result;
+    }
 
-        // 2) Collect reachable states from all roots using ChildStates index
-        var allStates = new Dictionary<string, State>(StringComparer.Ordinal);
-        foreach (var root in topLevel)
-            CollectStates(root.Value, allStates);
+    private static void CollectFromRoot(FsmRepository repo, State root, IDictionary<string, State> result)
+    {
+        var stack = new Stack<State>();
+        var seen  = new HashSet<string>(StringComparer.Ordinal);
+        stack.Push(root);
 
-        // 3) Map to StateView
+        while (stack.Count > 0)
+        {
+            var s = stack.Pop();
+            if (!seen.Add(s.Identifier)) continue;
+
+            result[s.Identifier] = s;
+
+            if (repo.ChildStates.TryGetValue(s.Identifier, out var kids))
+                for (int i = kids.Count - 1; i >= 0; i--)
+                    stack.Push(kids[i]);
+        }
+    }
+
+    private static Dictionary<string, StateView> MapStates(Dictionary<string, State> allStates)
+    {
         var viewById = new Dictionary<string, StateView>(allStates.Count, StringComparer.Ordinal);
         foreach (var s in allStates.Values)
         {
             viewById[s.Identifier] = new StateView
             {
-                Identifier = s.Identifier,
+                Identifier  = s.Identifier,
                 DisplayName = s.Name,
-                IsCompound = s.Type == StateType.COMPOUND
+                IsCompound  = s.Type == StateType.COMPOUND
             };
         }
+        return viewById;
+    }
 
-        // 4) Attach state actions (ENTRY/DO/EXIT) from State.Actions
+    private static void AttachActions(Dictionary<string, State> allStates, Dictionary<string, StateView> viewById)
+    {
         foreach (var s in allStates.Values)
         {
             var sv = viewById[s.Identifier];
@@ -53,18 +96,21 @@ public sealed class RepositoryFsmViewBuilder : IFsmViewBuilder
                 }
             }
         }
+    }
 
-        // 5) Wire parent/children using ChildStates
+    private static List<StateView> BuildRootsForView(FsmRepository repo, Dictionary<string, State> allStates, Dictionary<string, StateView> viewById)
+    {
         var rootsForView = new List<StateView>();
-        foreach (var root in topLevel)
+
+        foreach (var root in repo.RootStates.Values)
         {
-            if (root.Value.Type is StateType.INITIAL or StateType.FINAL) continue;
-            rootsForView.Add(viewById[root.Value.Identifier]);
+            if (root.Type is StateType.INITIAL or StateType.FINAL) continue;
+            rootsForView.Add(viewById[root.Identifier]);
         }
 
         foreach (var parent in allStates.Values)
         {
-            if (_repo.ChildStates.TryGetValue(parent.Identifier, out var kids))
+            if (repo.ChildStates.TryGetValue(parent.Identifier, out var kids))
             {
                 var pv = viewById[parent.Identifier];
                 foreach (var child in kids)
@@ -72,11 +118,17 @@ public sealed class RepositoryFsmViewBuilder : IFsmViewBuilder
             }
         }
 
-        // 6) Build transitions from SourceTransitions
+        return rootsForView;
+    }
+
+    private static List<TransitionView> BuildTransitions(FsmRepository repo, Dictionary<string, State> allStates, Dictionary<string, StateView> viewById)
+    {
         var topLevelTransitions = new List<TransitionView>();
+
         foreach (var s in allStates.Values)
         {
-            if (!_repo.SourceTransitions.TryGetValue(s.Identifier, out var outgoing)) continue;
+            if (!repo.SourceTransitions.TryGetValue(s.Identifier, out var outgoing))
+                continue;
 
             var isTopLevelSource = s.ParentId is null;
             var fromView = viewById[s.Identifier];
@@ -87,22 +139,18 @@ public sealed class RepositoryFsmViewBuilder : IFsmViewBuilder
                     ? toV.DisplayName
                     : t.DestinationState.Identifier;
 
-                var triggerText = t.Trigger?.Description ?? string.Empty;
-
                 var tv = new TransitionView
                 {
-                    FromIdentifier = t.SourceState.Identifier,
-                    ToIdentifier   = t.DestinationState.Identifier,
-                    ToDisplayName  = toName,
-                    TriggerIdentifier = triggerText,
-                    GuardCondition = t.GuardCondition
+                    FromIdentifier    = t.SourceState.Identifier,
+                    ToIdentifier      = t.DestinationState.Identifier,
+                    ToDisplayName     = toName,
+                    TriggerIdentifier = t.Trigger?.Description ?? string.Empty,
+                    GuardCondition    = t.GuardCondition
                 };
 
-                // Transition effect: repo’s Transition holds a single Action (effect) already
                 if (t.Action is { } eff && eff.Type == ActionType.TRANSITION_ACTION)
                     tv.TransitionActions.Add(eff.Description);
 
-                // Initial/Compound top-level transitions are rendered outside blocks
                 if (isTopLevelSource && (s.Type is StateType.INITIAL or StateType.COMPOUND))
                     topLevelTransitions.Add(tv);
                 else
@@ -110,7 +158,11 @@ public sealed class RepositoryFsmViewBuilder : IFsmViewBuilder
             }
         }
 
-        // 7) Initial & Final
+        return topLevelTransitions;
+    }
+
+    private static (StateView initial, StateView final) FindInitialAndFinal(Dictionary<string, State> allStates, Dictionary<string, StateView> viewById)
+    {
         StateView? initial = null, final = null;
         foreach (var s in allStates.Values)
         {
@@ -119,43 +171,9 @@ public sealed class RepositoryFsmViewBuilder : IFsmViewBuilder
         }
         if (initial is null || final is null)
             throw new InvalidOperationException("FSM must have an initial and final state.");
-
-        // 8) Assemble + order top-level transitions: initial first
-        var view = new FsmView
-        {
-            Title = title,
-            Initial = initial,
-            Final = final
-        };
-        view.RootStates.AddRange(rootsForView);
-
-        var initialId = allStates.Values.First(s => s.Type == StateType.INITIAL).Identifier;
-        topLevelTransitions = topLevelTransitions
-            .OrderBy(t => t.FromIdentifier == initialId ? 0 : 1)
-            .ToList();
-
-        view.TopLevelTransitions.AddRange(topLevelTransitions);
-        return view;
+        return (initial, final);
     }
 
-    private void CollectStates(State root, IDictionary<string, State> result)
-    {
-        var stack = new Stack<State>();
-        var seen  = new HashSet<string>(StringComparer.Ordinal);
-        stack.Push(root);
-
-        while (stack.Count > 0)
-        {
-            var s = stack.Pop();
-            if (!seen.Add(s.Identifier)) continue;
-
-            result[s.Identifier] = s;
-
-            if (_repo.ChildStates.TryGetValue(s.Identifier, out var kids))
-            {
-                for (int i = kids.Count - 1; i >= 0; i--)
-                    stack.Push(kids[i]);
-            }
-        }
-    }
+    private static List<TransitionView> OrderTopLevelTransitions(List<TransitionView> top, string initialId)
+        => top.OrderBy(t => t.FromIdentifier == initialId ? 0 : 1).ToList();
 }

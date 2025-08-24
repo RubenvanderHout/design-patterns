@@ -79,9 +79,9 @@ static void LoadAndRenderFlow(ILoaderFactory loaderFactory)
         var repo = ruleParser.Repo;   
 
         
-        var builder = new RepositoryFsmViewBuilder(repo);
-        var title = TryExtractTitle(raw) ?? Path.GetFileNameWithoutExtension(path);
-        var view = builder.BuildFromRepository(title);
+        var builder  = new RepositoryFsmViewBuilder();
+        var title    = TryExtractTitle(raw) ?? Path.GetFileNameWithoutExtension(path);
+        var view     = builder.Build(repo, title); 
 
         var renderer = new TextRenderer();
         var output = renderer.Render(view);
