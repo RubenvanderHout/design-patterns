@@ -1,6 +1,6 @@
 namespace IO.DTO;
 
-public abstract class DiagramComponentDto
+public abstract record  class DiagramComponentDto
 {
     public required string Identifier { get; init; }
 }

@@ -7,8 +7,13 @@ using IO.DTO;
 
 namespace IO
 {
-    internal interface IParser
+    public interface IParser
     {
-         FsmDto Parse(string rawInput);
+        FsmDto Parse(string rawInput);
+    }
+
+    public interface IParserFactory
+    {
+        IParser CreateParser();
     }
 }

@@ -32,7 +32,11 @@ public sealed class FsmFileParser : IParser
         if (string.IsNullOrWhiteSpace(rawInput))
             throw new ParseException("Input is empty.");
 
-        var dto = new FsmDto();
+        var dto = new FsmDto()
+        {
+            Title = TryExtractTitle(rawInput)
+        };
+        
         var lines = Normalize(rawInput).Split('\n');
 
         for (int i = 0; i < lines.Length; i++)
@@ -60,10 +64,36 @@ public sealed class FsmFileParser : IParser
 
     static string Normalize(string input)
     {
-        // Remove full-line comments, preserve other whitespace
-        var noComments = Regex.Replace(input, @"^\s*#.*$", string.Empty, RegexOptions.Multiline);
+        if (input.Length > 0 && input[0] == '\uFEFF')
+            input = input.Substring(1);
+
+        Regex s_fullLineComment = new(@"^\s*#.*$", RegexOptions.Multiline | RegexOptions.Compiled);
+        var noComments = s_fullLineComment.Replace(input, string.Empty);
+
         var lf = noComments.Replace("\r\n", "\n").Replace('\r', '\n');
-        // Remove trailing spaces only
         return string.Join("\n", lf.Split('\n').Select(s => s.TrimEnd()));
     }
+    
+    static string? TryExtractTitle(string raw)
+{
+    var lines = raw.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+    foreach (var line in lines)
+    {
+        var t = line.Trim();
+        if (t.Length == 0) continue;
+        if (t.StartsWith("#"))
+        {
+            var candidate = t.TrimStart('#').Trim();
+            if (candidate.Length > 0) return System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(candidate.ToLower());
+            continue;
+        }
+        break; // real content reached
+    }
+    return null;
+}
+}
+
+public sealed class FsmFileParserFactory : IParserFactory
+{
+    public IParser CreateParser() => new FsmFileParser();
 }

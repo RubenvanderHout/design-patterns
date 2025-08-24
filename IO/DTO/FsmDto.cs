@@ -1,6 +1,7 @@
 namespace IO.DTO;
-public sealed class FsmDto
+public sealed record class FsmDto
 {
+    public string? Title { get; init; }
     public List<StateDto> States { get; init; } = new();
     public List<TriggerDto> Triggers { get; init; } = new();
     public List<ActionDto> Actions { get; init; } = new();

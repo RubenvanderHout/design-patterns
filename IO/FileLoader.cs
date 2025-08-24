@@ -11,7 +11,7 @@ public sealed class FileLoader : ILoader
         if (!File.Exists(path))
             throw new FileNotFoundException("FSM file not found.", path);
 
-        return File.ReadAllText(path, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+        return File.ReadAllText(path);
     }
 
     public sealed class FileLoaderFactory : ILoaderFactory

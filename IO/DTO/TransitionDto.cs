@@ -1,5 +1,5 @@
 namespace IO.DTO;
-public sealed class TransitionDto : DiagramComponentDto
+public sealed record  class TransitionDto : DiagramComponentDto
 {
     public required string SourceStateIdentifier { get; init; }
     public required string DestinationStateIdentifier { get; init; }
