@@ -15,7 +15,6 @@ namespace Validation.ValidationRules
                 new CompoundStateRule(),
                 new FinalStateRule(),
                 new IdentifierRule(),
-                new IdentifierRule(),
                 new InitialStateRule(),
                 new NonDeterministicTransitionsRule(),
                 new TransitionRule(),
